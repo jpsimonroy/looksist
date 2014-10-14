@@ -1,5 +1,7 @@
 # Herdis
 
+[![Build Status](https://travis-ci.org/jpsimonroy/herdis.png?branch=master)](https://travis-ci.org/jpsimonroy/herdis)
+
 TODO: Write a gem description
 
 ## Installation
