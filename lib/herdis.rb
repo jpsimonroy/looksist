@@ -3,7 +3,7 @@ require 'herdis/version'
 module Herdis
   extend ActiveSupport::Concern
   class << self;
-    attr_accessor :lookup_store_client;
+    attr_accessor :lookup_store_client
   end
 
   module ClassMethods
@@ -35,13 +35,11 @@ module Herdis
 
   included do |base|
     base.class_attribute :lookup_attributes
-    base.class_exec do
-      set_callback :initialize, :after do |obj|
-        return unless obj.class.lookup_attributes
-        lookup_attributes = obj.class.lookup_attributes.each_with_object({}) { |attr, acc| acc[attr] = obj.send(attr) }
-        assign_attributes lookup_attributes
-      end
-    end
+  end
+
+  def as_json(opts = {})
+    self.class.lookup_attributes ||= []
+    attributes.merge(self.class.lookup_attributes.each_with_object({}) { |a, acc| acc[a] = send(a) })
   end
 
   private
