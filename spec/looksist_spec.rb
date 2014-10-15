@@ -106,4 +106,28 @@ describe Looksist do
       expect(e.location).to eq('Chennai')
     end
   end
+
+  context 'share storage between instances' do
+    class Employee
+      include Looksist
+      attr_accessor :id
+
+      lookup [:name, :location], using=:id
+
+      def initialize(id)
+        @id = id
+      end
+    end
+    it 'should share storage between instances to improve performance' do
+      employee_first_instance = Employee.new(1)
+      expect(Looksist.lookup_store_client).to receive(:get).with('ids/1')
+                                              .and_return({name: 'Employee Name', location: 'Chennai'}.to_json)
+      employee_first_instance.name
+
+      employee_second_instance = Employee.new(1)
+      expect(Looksist.lookup_store_client).not_to receive(:get).with('ids/1')
+
+      employee_second_instance.name
+    end
+  end
 end

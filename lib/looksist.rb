@@ -39,6 +39,7 @@ module Looksist
 
   included do |base|
     base.class_attribute :lookup_attributes
+    base.class_attribute :storage
   end
 
   module Serializers
@@ -55,7 +56,7 @@ module Looksist
   private
 
   def memoized(key)
-    @storage = @storage || OpenStruct.new
-    @storage[key] = @storage[key] || Looksist.lookup_store_client.get(key)
+    self.class.storage ||= OpenStruct.new
+    self.class.storage[key] = self.class.storage[key] || Looksist.lookup_store_client.get(key)
   end
 end
