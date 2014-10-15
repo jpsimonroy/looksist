@@ -1,14 +1,16 @@
-# Herdis
+# Looksist
 
 [![Build Status](https://travis-ci.org/jpsimonroy/herdis.png?branch=master)](https://travis-ci.org/jpsimonroy/herdis)
 
-TODO: Write a gem description
+looksist (adj) - forming positive prejudices based on appearances
+
+Use this gem when you have to lookup attributes from a key-value store based on another attribute as key. This supports redis out-of-the-box and it's blazing fast!
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'herdis'
+    gem 'looksist'
 
 And then execute:
 
@@ -16,16 +18,47 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install herdis
+    $ gem install looksist
 
 ## Usage
 
-TODO: Write usage instructions here
+* Add an initializer to configure looksist
 
-## Contributing
+``` ruby
+Looksist.lookup_store_client ||= Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
+Looksist.driver = Looksist::Serializers::Her
+```
+You need to specify the driver to manage the attributes. In this case, we use [HER](https://github.com/remiprev/her). You can add support for ActiveResource or ActiveRecord as needed (also refer to specs for free form usage without a driver).
 
-1. Fork it ( https://github.com/[my-github-username]/herdis/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+* Please find the sample rspec to understand the usage and internals
+
+``` ruby
+it 'should generate declarative attributes on the model with simple lookup value' do
+      module SimpleLookup
+        class Employee
+          include Looksist
+          attr_accessor :id
+          lookup :name, using= :id
+
+          def initialize(id)
+            @id = id
+          end
+        end
+      end
+
+      expect(Looksist.lookup_store_client).to receive(:get).with('ids/1').and_return('Employee Name')
+      e = SimpleLookup::Employee.new(1)
+      expect(e.name).to eq('Employee Name')
+end
+```
+lookup takes the following form:
+
+``` ruby
+lookup :name, using = :employee_id # will lookup "employees/#{employee_id}" from the store
+
+lookup :name, using = :employee_id, bucket_name="stars" # will lookup "stars/#{employee_id}" from the store
+
+lookup [:name, :location], using = :employee_id # will lookup "stars/#{employee_id}" from the store for an object with two attributes (name, location)
+
+```
+
