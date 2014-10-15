@@ -1,6 +1,6 @@
-require 'herdis/version'
+require 'looksist/version'
 
-module Herdis
+module Looksist
   extend ActiveSupport::Concern
   class << self;
     attr_accessor :lookup_store_client, :driver
@@ -33,11 +33,12 @@ module Herdis
     end
   end
 
+  def as_json(opts)
+    Looksist.driver.json_opts(self, opts)
+  end
+
   included do |base|
     base.class_attribute :lookup_attributes
-    define_method(:as_json) do |opts|
-      Herdis.driver.json_opts(self, opts)
-    end
   end
 
   module Serializers
@@ -55,6 +56,6 @@ module Herdis
 
   def memoized(key)
     @storage = @storage || OpenStruct.new
-    @storage[key] = @storage[key] || Herdis.lookup_store_client.get(key)
+    @storage[key] = @storage[key] || Looksist.lookup_store_client.get(key)
   end
 end
