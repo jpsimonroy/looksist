@@ -18,14 +18,14 @@ module Herdis
       if what.is_a? Array
         what.each do |method_name|
           define_method(method_name) do
-            key = [bucket, '/', self[using].try(:to_s)].join('')
+            key = [bucket, '/', self.send(using).try(:to_s)].join('')
             JSON.parse(send(:memoized, key))[method_name.to_s]
           end
           self.lookup_attributes << method_name
         end
       else
         define_method(what) do
-          key = [bucket, '/', self[using].try(:to_s)].join('')
+          key = [bucket, '/', self.send(using).try(:to_s)].join('')
           send(:memoized, key)
         end
         self.lookup_attributes << what.to_sym
