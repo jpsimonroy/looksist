@@ -13,20 +13,25 @@ module Looksist
       entity.pluralize
     end
 
+    def memoized(key)
+      self.storage ||= OpenStruct.new
+      self.storage[key] = self.storage[key] || Looksist.lookup_store_client.get(key)
+    end
+
     def lookup(what, using, bucket = bucket_name(using))
       self.lookup_attributes ||= []
       if what.is_a? Array
         what.each do |method_name|
           define_method(method_name) do
             key = [bucket, '/', self.send(using).try(:to_s)].join('')
-            JSON.parse(send(:memoized, key))[method_name.to_s]
+            JSON.parse(self.class.memoized(key))[method_name.to_s]
           end
           self.lookup_attributes << method_name
         end
       else
         define_method(what) do
           key = [bucket, '/', self.send(using).try(:to_s)].join('')
-          send(:memoized, key)
+          self.class.memoized(key)
         end
         self.lookup_attributes << what.to_sym
       end
@@ -38,8 +43,7 @@ module Looksist
   end
 
   included do |base|
-    base.class_attribute :lookup_attributes
-    base.class_attribute :storage
+    base.class_attribute :lookup_attributes, :storage
   end
 
   module Serializers
@@ -51,12 +55,5 @@ module Looksist
         end
       end
     end
-  end
-
-  private
-
-  def memoized(key)
-    self.class.storage ||= OpenStruct.new
-    self.class.storage[key] = self.class.storage[key] || Looksist.lookup_store_client.get(key)
   end
 end
