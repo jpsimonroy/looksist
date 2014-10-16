@@ -2,8 +2,6 @@ module Looksist
   module Hashed
     extend ActiveSupport::Concern
 
-    # inject after: :assortment, at: 'table', using: :supplier_id, populate: :supplier_name, bucket_name: 'suppliers'
-
     class << self;
       attr_accessor :redis_service
     end
@@ -37,7 +35,7 @@ module Looksist
     end
 
     def entity(entity_id)
-      entity = entity_id.to_s.gsub('_id', '')
+      entity_id.to_s.gsub('_id', '')
     end
   end
 end

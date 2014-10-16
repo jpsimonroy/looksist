@@ -9,6 +9,7 @@ describe Looksist::Hashed do
     end
 
     @mock = MockRedis.new
+
     Looksist::Hashed.redis_service = Looksist::RedisService.instance do |lookup|
       lookup.client = @mock
     end
@@ -34,7 +35,7 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:get).with('employees/1').and_return(OpenStruct.new(value:'emp 1'))
       expect(@mock).to receive(:get).with('employees/2').and_return(OpenStruct.new(value:'emp 2'))
 
-      HashService1.new.metrics.should eq({table: {
+      expect(HashService1.new.metrics).to eq({table: {
           employee_id: [1, 2],
           employee_name: ['emp 1', 'emp 2']
       }})
@@ -63,7 +64,7 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:get).with('employers/3').and_return(OpenStruct.new(value:'empr 3'))
       expect(@mock).to receive(:get).with('employers/4').and_return(OpenStruct.new(value:'empr 4'))
 
-      HashService.new.metrics.should eq({table: {
+      expect(HashService.new.metrics).to eq({table: {
           employee_id: [5, 6],
           employer_id: [3, 4],
           employee_name: ['emp 5', 'emp 6'],
@@ -105,12 +106,12 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:get).with('dcs/8').and_return(OpenStruct.new(value:'dc 8'))
 
       hash_service_super = HashServiceSuper.new
-      hash_service_super.shrinkage.should eq({table: {
+      expect(hash_service_super.shrinkage).to eq({table: {
           shrink_id: [1, 2],
           shrink_name: ['shrink 1', 'shrink 2']
       }})
 
-      hash_service_super.stock.should eq({table: {
+      expect(hash_service_super.stock).to eq({table: {
           dc_id: [7, 8],
           dc_name: ['dc 7', 'dc 8']
       }})
