@@ -2,6 +2,8 @@ require 'active_support/all'
 require 'faraday_middleware'
 require 'her'
 require 'looksist'
+require 'looksist/redis_service'
+require 'looksist/hashed'
 require 'pry'
 
 module Her

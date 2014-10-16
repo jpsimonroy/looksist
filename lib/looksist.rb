@@ -1,4 +1,6 @@
 require 'looksist/version'
+require 'looksist/redis_service'
+require 'looksist/hashed'
 
 module Looksist
   extend ActiveSupport::Concern
