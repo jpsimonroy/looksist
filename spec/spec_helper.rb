@@ -1,6 +1,7 @@
 require 'active_support/all'
 require 'faraday_middleware'
 require 'her'
+require 'ostruct'
 require 'looksist'
 require 'looksist/redis_service'
 require 'looksist/hashed'
