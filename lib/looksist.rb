@@ -1,4 +1,6 @@
 require 'looksist/version'
+require 'looksist/redis_service'
+require 'looksist/hashed'
 
 module Looksist
   extend ActiveSupport::Concern
@@ -40,7 +42,7 @@ module Looksist
       if what.is_a? Array
         what.each do |method_name|
           define_method(method_name) do
-            JSON.parse(self.class.memoized(self.class.redis_key(bucket, self.send(using).try(:to_s))))[method_name.to_s]
+            JSON.parse(self.class.memoized(self.class.redis_key(bucket, self.send(using).try(:to_s))) || '{}')[method_name.to_s]
           end
           self.lookup_attributes << method_name
         end
