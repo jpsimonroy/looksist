@@ -1,6 +1,7 @@
 require 'looksist/version'
 require 'looksist/redis_service'
 require 'looksist/hashed'
+require 'looksist/her_collection'
 
 module Looksist
   extend ActiveSupport::Concern
@@ -72,14 +73,6 @@ module Looksist
           obj.class.lookup_attributes ||= []
           obj.attributes.merge(obj.class.lookup_attributes.each_with_object({}) { |a, acc| acc[a] = obj.send(a) })
         end
-      end
-    end
-  end
-
-  module Her
-    class Collection
-      def load_all_meta
-
       end
     end
   end
