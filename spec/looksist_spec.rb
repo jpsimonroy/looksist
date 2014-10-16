@@ -148,7 +148,7 @@ describe Looksist do
       lookup [:role], using=:role_id
     end
     it 'should hold all the id and buckets' do
-       expect(Developer.id_and_buckets).to eq([{id: :city_id, bucket: "cities"}, {id: :role_id, bucket: "roles"}])
+       expect(Developer.id_and_buckets).to eq([{id: :city_id, bucket: 'cities'}, {id: :role_id, bucket: 'roles'}])
     end
   end
 
@@ -160,11 +160,11 @@ describe Looksist do
     end
 
     AnotherDeveloperClass.storage = OpenStruct.new
-    AnotherDeveloperClass.storage["cities/1"] = "Chennai"
-    AnotherDeveloperClass.storage["cities/2"] = "Delhi"
+    AnotherDeveloperClass.storage['cities/1'] = 'Chennai'
+    AnotherDeveloperClass.storage['cities/2'] = 'Delhi'
 
     it 'make single request for multiple values' do
-      expect(Looksist.lookup_store_client).to receive(:mapped_mget).with(['cities/4', 'cities/5'])
+      expect(Looksist.lookup_store_client).to receive(:mapped_mget).with(%w(cities/4 cities/5))
                         .and_return({'cities/4' => 'Bangalore', 'cities/5' => 'Kolkata'})
       AnotherDeveloperClass.mmemoized(:city_id, [1, 4, 5])
 
