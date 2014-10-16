@@ -35,7 +35,7 @@ module Looksist
           find(entity, id)
         end
       end
-      ids.each_with_object([]) { |k, acc| acc << cache[redis_key(entity, k)] }
+      ids.each_with_object([]) { |k, acc| acc << cache[redis_key(entity, k)].value }
     end
 
     def hit_or_miss(key, &block)

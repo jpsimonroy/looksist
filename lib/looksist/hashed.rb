@@ -14,10 +14,11 @@ module Looksist
         @rules ||= {}
         @rules[opts[:after]] ||= []
         @rules[opts[:after]] << opts
+
         return if @rules[opts[:after]].length > 1
 
-        define_method("#{opts[:after]}_with_inject") do
-          hash = send("#{opts[:after]}_without_inject".to_sym)
+        define_method("#{opts[:after]}_with_inject") do |*args|
+          hash = send("#{opts[:after]}_without_inject".to_sym, *args)
           self.class.instance_variable_get(:@rules)[opts[:after]].each do |opts|
             keys = hash[opts[:at]][opts[:using]]
             entity_name = entity(opts[:using])
