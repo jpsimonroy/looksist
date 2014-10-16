@@ -19,7 +19,7 @@ module Looksist
         what.each do |method_name|
           define_method(method_name) do
             key = [bucket, '/', self.send(using).try(:to_s)].join('')
-            JSON.parse(send(:memoized, key))[method_name.to_s]
+            JSON.parse(send(:memoized, key) || '{}')[method_name.to_s]
           end
           self.lookup_attributes << method_name
         end
