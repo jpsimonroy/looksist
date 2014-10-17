@@ -28,5 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'faraday'
   spec.add_development_dependency 'faraday_middleware'
 
+  spec.add_runtime_dependency 'jsonpath', '~> 0.5.6'
+
 
 end

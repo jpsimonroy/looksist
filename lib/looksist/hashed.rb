@@ -1,3 +1,6 @@
+require 'jsonpath'
+require 'json'
+
 module Looksist
   module Hashed
     extend ActiveSupport::Concern
@@ -18,10 +21,20 @@ module Looksist
         define_method("#{opts[:after]}_with_inject") do |*args|
           hash = send("#{opts[:after]}_without_inject".to_sym, *args)
           self.class.instance_variable_get(:@rules)[opts[:after]].each do |opts|
-            keys = hash[opts[:at]][opts[:using]]
-            entity_name = entity(opts[:using])
-            values = Hashed.redis_service.send("#{entity_name}_for", keys)
-            hash[opts[:at]][opts[:populate]] = values
+            if opts[:at].is_a? String
+              hash = JsonPath.for(hash.with_indifferent_access).gsub(opts[:at]) do |i|
+                keys = i[opts[:using]]
+                entity_name = entity(opts[:using])
+                values = Hashed.redis_service.send("#{entity_name}_for", keys)
+                i[opts[:populate]] = values
+                i
+              end.to_hash.deep_symbolize_keys
+            else
+              keys = hash[opts[:at]][opts[:using]]
+              entity_name = entity(opts[:using])
+              values = Hashed.redis_service.send("#{entity_name}_for", keys)
+              hash[opts[:at]][opts[:populate]] = values
+            end
           end
           hash
         end
