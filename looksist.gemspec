@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Lookist::VERSION
   spec.authors       = %w(RC Simon)
   spec.email         = %w(rmchandru@thoughtworks.com simonroy@thoughtworks.com)
-  spec.summary       = %q{Redis backed lookup for your her models}
-  spec.description   = %q{Redis backed lookup for your her models}
+  spec.summary       = %q{Redis backed lookup for your models}
+  spec.description   = %q{Redis backed lookup for your models}
   spec.homepage      = 'https://github.com/jpsimonroy/herdis'
   spec.license       = 'MIT'
 
