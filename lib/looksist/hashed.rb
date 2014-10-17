@@ -23,22 +23,14 @@ module Looksist
           self.class.instance_variable_get(:@rules)[opts[:after]].each do |opts|
             if opts[:at].is_a? String
               hash = JsonPath.for(hash.with_indifferent_access).gsub(opts[:at]) do |i|
-                keys = i[opts[:using]]
-                entity_name = entity(opts[:using])
-                values = Hashed.redis_service.send("#{entity_name}_for", keys)
-                i[opts[:populate]] = values
-                i
+                inject_attributes_at(i, opts)
               end.to_hash.deep_symbolize_keys
             else
-              keys = hash[opts[:at]][opts[:using]]
-              entity_name = entity(opts[:using])
-              values = Hashed.redis_service.send("#{entity_name}_for", keys)
-              hash[opts[:at]][opts[:populate]] = values
+              inject_attributes_at(hash[opts[:at]], opts)
             end
           end
           hash
         end
-
         alias_method_chain opts[:after], :inject
       end
     end
@@ -47,8 +39,17 @@ module Looksist
       base.class_attribute :rules
     end
 
+    private
     def entity(entity_id)
       entity_id.to_s.gsub('_id', '')
+    end
+
+    def inject_attributes_at(hash_offset, opts)
+      keys = hash_offset[opts[:using]]
+      entity_name = entity(opts[:using])
+      values = Hashed.redis_service.send("#{entity_name}_for", keys)
+      hash_offset[opts[:populate]] = values
+      hash_offset
     end
   end
 end

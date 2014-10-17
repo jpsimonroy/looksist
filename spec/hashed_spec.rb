@@ -17,7 +17,6 @@ describe Looksist::Hashed do
 
 
   context 'inject ' do
-
     it 'should be capable to deep lookup and inject' do
       class DeepHash
         include Looksist::Hashed
@@ -32,7 +31,7 @@ describe Looksist::Hashed do
           }
         end
 
-        inject after: :metrics, at: 'table.inner_table', using: :employee_id, populate: :employee_name
+        inject after: :metrics, at: '$.table.inner_table', using: :employee_id, populate: :employee_name
       end
 
       expect(@mock).to receive(:get).with('employees/10').and_return(OpenStruct.new(value: 'emp 1'))
@@ -45,6 +44,7 @@ describe Looksist::Hashed do
           }
       }})
     end
+
     it 'should inject single attribute to an existing hash' do
       class HashService1
         include Looksist::Hashed
