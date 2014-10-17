@@ -43,22 +43,18 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:get).with('items/1').and_return(OpenStruct.new(value: 'Idly'))
       expect(@mock).to receive(:get).with('items/2').and_return(OpenStruct.new(value: 'Pongal'))
 
-      expect(Menu.new.metrics).to eq(
-                                      {
-                                          table: {
-                                              menu: [
-                                                  {
-                                                      item_id: 1,
-                                                      item_name: 'Idly'
-                                                  },
-                                                  {
-                                                      item_id: 2,
-                                                      item_name: 'Pongal'
-                                                  }
-                                              ]
-                                          }
-                                      }
-                                  )
+      expect(Menu.new.metrics).to eq({
+                                       table: {
+                                         menu: [{
+                                               item_id: 1,
+                                               item_name: 'Idly'
+                                           },
+                                           {
+                                               item_id: 2,
+                                               item_name: 'Pongal'
+                                           }]
+                                       }
+                                     })
     end
 
     xit 'should be capable to deep lookup and inject - another example' do
@@ -188,6 +184,41 @@ describe Looksist::Hashed do
     end
   end
 
+  it 'should inject multiple attribute to an existing deep hash' do
+    class EmployeeHash
+      include Looksist::Hashed
+
+      def metrics
+        {
+            table: {
+                database: {
+                    employee_id: [15, 16],
+                    employer_id: [13, 14]
+                }
+            }
+        }
+      end
+
+      inject after: :metrics, at: '$.table.database', using: :employee_id, populate: :employee_name
+      inject after: :metrics, at: '$.table.database', using: :employer_id, populate: :employer_name
+    end
+
+    expect(@mock).to receive(:get).with('employees/15').and_return(OpenStruct.new(value: 'emp 15'))
+    expect(@mock).to receive(:get).with('employees/16').and_return(OpenStruct.new(value: 'emp 16'))
+
+    expect(@mock).to receive(:get).with('employers/13').and_return(OpenStruct.new(value: 'empr 13'))
+    expect(@mock).to receive(:get).with('employers/14').and_return(OpenStruct.new(value: 'empr 14'))
+
+    expect(EmployeeHash.new.metrics).to eq({table: {
+        database: {
+            employee_id: [15, 16],
+            employer_id: [13, 14],
+            employee_name: ['emp 15', 'emp 16'],
+            employer_name: ['empr 13', 'empr 14']
+        }
+    }})
+  end
+
 
   context 'multiple methods and injections' do
     it 'should inject multiple attribute to an existing hash' do
@@ -231,6 +262,5 @@ describe Looksist::Hashed do
           dc_name: ['dc 7', 'dc 8']
       }})
     end
-
   end
 end
