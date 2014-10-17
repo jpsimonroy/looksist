@@ -23,7 +23,7 @@ module Looksist
           hash = send("#{after}_without_inject".to_sym, *args)
           self.class.instance_variable_get(:@rules)[after].each do |opts|
             if opts[:at].is_a? String
-              hash = JsonPath.for(hash.with_indifferent_access).gsub(opts[:at]) do |i|
+              hash = JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
                 i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts)
               end.to_hash.deep_symbolize_keys
             else
