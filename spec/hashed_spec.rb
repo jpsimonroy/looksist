@@ -17,7 +17,94 @@ describe Looksist::Hashed do
 
 
   context 'inject ' do
+
     it 'should be capable to deep lookup and inject' do
+      class Menu
+        include Looksist::Hashed
+
+        def metrics
+          {
+              table: {
+                  menu: [
+                      {
+                          item_id: 1
+                      },
+                      {
+                          item_id: 2
+                      }
+                  ]
+              }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: :item_name
+      end
+
+      expect(@mock).to receive(:get).with('items/1').and_return(OpenStruct.new(value: 'Idly'))
+      expect(@mock).to receive(:get).with('items/2').and_return(OpenStruct.new(value: 'Pongal'))
+
+      expect(Menu.new.metrics).to eq(
+                                      {
+                                          table: {
+                                              menu: [
+                                                  {
+                                                      item_id: 1,
+                                                      item_name: 'Idly'
+                                                  },
+                                                  {
+                                                      item_id: 2,
+                                                      item_name: 'Pongal'
+                                                  }
+                                              ]
+                                          }
+                                      }
+                                  )
+    end
+
+    xit 'should be capable to deep lookup and inject - another example' do
+      class NewMenu
+        include Looksist::Hashed
+
+        def metrics
+          {
+              table: {
+                  menu: [
+                      {
+                          item_id: 4,
+                          item_name: 'Idly'
+                      },
+                      {
+                          item_id: 5
+                      }
+                  ]
+              }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu[?(@.item_id=5)]', using: :item_id, populate: :item_name
+      end
+
+      expect(@mock).to receive(:get).with('items/5').and_return(OpenStruct.new(value: 'Pongal'))
+
+      expect(NewMenu.new.metrics).to eq(
+                                         {
+                                             table: {
+                                                 menu: [
+                                                     {
+                                                         item_id: 4,
+                                                         item_name: 'Idly'
+                                                     },
+                                                     {
+                                                         item_id: 5,
+                                                         item_name: 'Pongal'
+                                                     }
+                                                 ]
+                                             }
+                                         }
+                                     )
+    end
+
+    it 'should be capable to deep lookup and inject on columnar hashes' do
       class DeepHash
         include Looksist::Hashed
 
