@@ -1,6 +1,7 @@
 # Looksist
 
 [![Build Status](https://travis-ci.org/jpsimonroy/looksist.png?branch=master)](https://travis-ci.org/jpsimonroy/looksist)
+[![Gem Version](https://badge.fury.io/rb/looksist.svg)](http://badge.fury.io/rb/looksist)
 
 looksist (adj) - forming positive prejudices based on appearances
 
