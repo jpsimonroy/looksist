@@ -22,6 +22,8 @@ Or install it yourself as:
 
 ## Usage
 
+### With Object Models (Her, Active Resource or any of your choice)
+
 * Add an initializer to configure looksist
 
 ``` ruby
@@ -54,11 +56,138 @@ end
 lookup takes the following form:
 
 ``` ruby
-lookup :name, using = :employee_id # will lookup "employees/#{employee_id}" from the store
+# will lookup "employees/#{employee_id}" from the store
+lookup :name, using = :employee_id  
 
-lookup :name, using = :employee_id, bucket_name="stars" # will lookup "stars/#{employee_id}" from the store
+# will lookup "stars/#{employee_id}" from the store
+lookup :name, using = :employee_id, bucket_name="stars" 
 
-lookup [:name, :location], using = :employee_id # will lookup "stars/#{employee_id}" from the store for an object with two attributes (name, location)
+# will lookup "stars/#{employee_id}" from the store 
+# for an object with two attributes (name, location)
+lookup [:name, :location], using = :employee_id 
 
+```
+
+### With Plain Hashes
+
+* Add an initializer to configure looksist
+
+```ruby
+redis_client ||= Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
+
+Looksist::Hashed.redis_service = Looksist::RedisService.instance do |lookup|
+  lookup.client = redis_client
+end
+
+```
+
+#### Columnar Hashes
+
+* First Level look ups
+
+```ruby
+it 'should inject multiple attribute to an existing hash' do
+      class HashService
+        include Looksist::Hashed
+
+        def metrics
+          {
+              table: {
+                  employee_id: [5, 6],
+                  employer_id: [3, 4]
+              }
+          }
+        end
+
+        inject after: :metrics, at: :table, 
+                    using: :employee_id, populate: :employee_name
+        inject after: :metrics, at: :table, 
+                    using: :employer_id, populate: :employer_name
+      end
+      # Removed mock expectations, look at the tests for actuals
+      expect(HashService.new.metrics).to eq({table: {
+          employee_id: [5, 6],
+          employer_id: [3, 4],
+          employee_name: ['emp 5', 'emp 6'],
+          employer_name: ['empr 3', 'empr 4']
+      }})
+    end
+  end
+
+```
+* Inner Lookups using [JsonPath](https://github.com/joshbuddy/jsonpath)
+
+```ruby
+it 'should inject multiple attribute to an existing deep hash' do
+    class EmployeeHash
+      include Looksist::Hashed
+
+      def metrics
+        {
+            table: {
+                database: {
+                    employee_id: [15, 16],
+                    employer_id: [13, 14]
+                }
+            }
+        }
+      end
+
+      inject after: :metrics, at: '$.table.database', 
+                    using: :employee_id, populate: :employee_name
+      inject after: :metrics, at: '$.table.database', 
+                    using: :employer_id, populate: :employer_name
+    end
+
+    # Mocks removed to keep it simple.
+    expect(EmployeeHash.new.metrics).to eq({table: {
+        database: {
+            employee_id: [15, 16],
+            employer_id: [13, 14],
+            employee_name: ['emp 15', 'emp 16'],
+            employer_name: ['empr 13', 'empr 14']
+        }
+    }})
+  end
+```
+#### Non Columnar Hashes
+
+```ruby
+it 'should be capable to deep lookup and inject' do
+      class Menu
+        include Looksist::Hashed
+
+        def metrics
+          {
+              table: {
+                  menu: [
+                      {
+                          item_id: 1
+                      },
+                      {
+                          item_id: 2
+                      }
+                  ]
+              }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu', 
+                        using: :item_id, populate: :item_name
+      end
+
+      expect(Menu.new.metrics).to eq({
+                                       table: {
+                                         menu: [{
+                                               item_id: 1,
+                                               item_name: 'Idly'
+                                           },
+                                           {
+                                               item_id: 2,
+                                               item_name: 'Pongal'
+                                           }]
+                                       }
+                                     })
+    end
 ```
 
