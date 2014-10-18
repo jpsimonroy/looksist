@@ -4,6 +4,8 @@ require 'json'
 require 'looksist/redis_service'
 require 'looksist/hashed'
 require 'looksist/her_collection'
+require 'looksist/safe_lru_cache'
+
 
 module Looksist
   extend ActiveSupport::Concern

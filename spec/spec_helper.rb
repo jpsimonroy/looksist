@@ -5,6 +5,7 @@ require 'ostruct'
 require 'looksist'
 require 'looksist/redis_service'
 require 'looksist/hashed'
+require 'looksist/safe_lru_cache'
 require 'pry'
 
 module Her
@@ -27,3 +28,6 @@ end
 
 TEST_API.setup url: 'http://dummy.com', &config
 
+RSpec.configure do |config|
+
+end
