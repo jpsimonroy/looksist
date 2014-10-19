@@ -43,6 +43,7 @@ module Looksist
     end
 
     def inject_attributes_at(hash_offset, opts)
+      return nil unless hash_offset
       keys = hash_offset[opts[:using]]
       entity_name = entity(opts[:using])
       values = Looksist.redis_service.send("#{entity_name}_for", keys)
