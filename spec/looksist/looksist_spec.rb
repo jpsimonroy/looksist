@@ -53,7 +53,7 @@ describe Looksist do
   context 'Lazy Evaluation' do
     module LazyEval
       class Employee
-        include Looksist::Core
+        include Looksist
         attr_accessor :id
         lookup :name, using = :id, bucket_name = 'employees'
 
@@ -72,7 +72,7 @@ describe Looksist do
     it 'should generate declarative attributes on the model with simple lookup value' do
       module SimpleLookup
         class Employee
-          include Looksist::Core
+          include Looksist
           attr_accessor :id, :employee_id
           lookup :name, using= :id
           lookup :unavailable, using= :employee_id
@@ -93,7 +93,7 @@ describe Looksist do
     it 'should generate declarative attributes on the model with object based lookup value' do
       module CompositeLookup
         class Employee
-          include Looksist::Core
+          include Looksist
           attr_accessor :id, :employee_id
 
           lookup [:name, :location], using=:id
@@ -121,7 +121,7 @@ describe Looksist do
 
   context 'share storage between instances' do
     class Employee
-      include Looksist::Core
+      include Looksist
       attr_accessor :id
 
       lookup [:name, :location], using=:id
@@ -145,7 +145,7 @@ describe Looksist do
 
   context '.id_and_buckets' do
     class Developer
-      include Looksist::Core
+      include Looksist
       lookup [:city], using=:city_id
       lookup [:role], using=:role_id
     end
@@ -156,7 +156,7 @@ describe Looksist do
 
   context '.mmemoized' do
     class AnotherDeveloperClass
-      include Looksist::Core
+      include Looksist
       lookup [:city], using=:city_id
       lookup [:role], using=:role_id
     end
