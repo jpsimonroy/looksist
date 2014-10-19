@@ -28,8 +28,10 @@ Or install it yourself as:
 * Add an initializer to configure looksist
 
 ``` ruby
-Looksist.lookup_store_client ||= Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
-Looksist.driver = Looksist::Serializers::Her
+Looksist.configure do |looksist|
+      looksist.lookup_store = Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
+      looksist.driver =  Looksist::Serializers::Her
+end
 ```
 You need to specify the driver to manage the attributes. In this case, we use [HER](https://github.com/remiprev/her). You can add support for ActiveResource or ActiveRecord as needed (also refer to specs for free form usage without a driver).
 
@@ -49,7 +51,7 @@ it 'should generate declarative attributes on the model with simple lookup value
         end
       end
 
-      expect(Looksist.lookup_store_client).to receive(:get).with('ids/1').and_return('Employee Name')
+      expect(Looksist.lookup_store).to receive(:get).with('ids/1').and_return('Employee Name')
       e = SimpleLookup::Employee.new(1)
       expect(e.name).to eq('Employee Name')
 end
@@ -71,16 +73,6 @@ lookup [:name, :location], using = :employee_id
 
 ### With Plain Hashes
 
-* Add an initializer to configure looksist
-
-```ruby
-redis_client ||= Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
-
-Looksist::Hashed.redis_service = Looksist::RedisService.instance do |lookup|
-  lookup.client = redis_client
-end
-
-```
 
 #### Columnar Hashes
 
@@ -89,7 +81,7 @@ end
 ```ruby
 it 'should inject multiple attribute to an existing hash' do
       class HashService
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {
@@ -121,7 +113,7 @@ it 'should inject multiple attribute to an existing hash' do
 ```ruby
 it 'should inject multiple attribute to an existing deep hash' do
     class EmployeeHash
-      include Looksist::Hashed
+      include Looksist
 
       def metrics
         {
@@ -156,7 +148,7 @@ it 'should inject multiple attribute to an existing deep hash' do
 ```ruby
 it 'should be capable to deep lookup and inject' do
       class Menu
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {

@@ -5,10 +5,6 @@ module Looksist
   module Hashed
     extend ActiveSupport::Concern
 
-    class << self;
-      attr_accessor :redis_service
-    end
-
     module ClassMethods
       def inject(opts)
         raise 'Incorrect usage' unless [:after, :using, :populate].all? { |e| opts.keys.include? e }
@@ -49,7 +45,7 @@ module Looksist
     def inject_attributes_at(hash_offset, opts)
       keys = hash_offset[opts[:using]]
       entity_name = entity(opts[:using])
-      values = Hashed.redis_service.send("#{entity_name}_for", keys)
+      values = Looksist.redis_service.send("#{entity_name}_for", keys)
       hash_offset[opts[:populate]] = values
       hash_offset
     end
@@ -58,7 +54,7 @@ module Looksist
       arry_of_hashes.each do |elt|
         key = elt[opts[:using]]
         entity_name = entity(opts[:using])
-        value = Hashed.redis_service.send("#{entity_name}_for", [key])
+        value = Looksist.redis_service.send("#{entity_name}_for", [key])
         elt[opts[:populate]] = value.first
       end
     end

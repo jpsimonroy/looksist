@@ -3,17 +3,17 @@ require 'spec_helper'
 describe Looksist::Hashed do
   before(:each) do
     @mock = {}
-    Looksist::Hashed.redis_service = Looksist::RedisService.instance do |lookup|
-      lookup.client = @mock
+    Looksist.configure do |looksist|
+      looksist.lookup_store = @mock
+      looksist.cache_buffer_size = 10
     end
   end
-
 
   context 'inject ' do
 
     it 'should be capable to deep lookup and inject' do
       class Menu
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {
@@ -52,7 +52,7 @@ describe Looksist::Hashed do
 
     xit 'should be capable to deep lookup and inject - another example' do
       class NewMenu
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {
@@ -95,7 +95,7 @@ describe Looksist::Hashed do
 
     it 'should be capable to deep lookup and inject on columnar hashes' do
       class DeepHash
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {
@@ -122,7 +122,7 @@ describe Looksist::Hashed do
 
     it 'should inject single attribute to an existing hash' do
       class HashService1
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {
@@ -145,7 +145,7 @@ describe Looksist::Hashed do
 
     it 'should inject multiple attribute to an existing hash' do
       class HashService
-        include Looksist::Hashed
+        include Looksist
 
         def metrics
           {
@@ -175,7 +175,7 @@ describe Looksist::Hashed do
 
   it 'should inject multiple attribute to an existing deep hash' do
     class EmployeeHash
-      include Looksist::Hashed
+      include Looksist
 
       def metrics
         {
@@ -210,7 +210,7 @@ describe Looksist::Hashed do
   context 'multiple methods and injections' do
     it 'should inject multiple attribute to an existing hash' do
       class HashServiceSuper
-        include Looksist::Hashed
+        include Looksist
 
         def shrinkage
           {
