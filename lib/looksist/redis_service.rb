@@ -16,8 +16,8 @@ module Looksist
     end
 
     def method_missing(name, *args, &block)
-      if name.to_s.ends_with?("_for")
-        entity = name.to_s.gsub('_for','')
+      if name.to_s.ends_with?('_for')
+        entity = name.to_s.gsub('_for', '')
         first_arg = args.first
         first_arg.is_a?(Array) ? find_all(entity, first_arg) : find(entity, first_arg)
       else
@@ -35,8 +35,10 @@ module Looksist
       raise 'Buffer overflow! Increase buffer size' if ids.length > @buffer_size
       keys = ids.collect { |id| redis_key(entity, id) }
       missed_keys = (keys - @cache.keys).uniq
-      values = @client.mget missed_keys
-      @cache.merge!(Hash[*missed_keys.zip(values).flatten])
+      unless missed_keys.empty?
+        values = @client.mget *missed_keys
+        @cache.merge!(Hash[*missed_keys.zip(values).flatten])
+      end
       @cache.mslice(keys)
     end
 
@@ -48,7 +50,7 @@ module Looksist
     end
 
     def fetch(key, &block)
-      @cache[key] ||=  block.call
+      @cache[key] ||= block.call
     end
 
     def redis_key(entity, id)

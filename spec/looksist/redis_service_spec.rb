@@ -39,13 +39,19 @@ describe Looksist::RedisService do
     end
 
     it 'should mget redis when there are multiple keys' do
-      expect(@mock).to receive(:mget).with(['snacks/1', 'snacks/2', 'snacks/3']).once.and_return(['BAJJI', 'BONDA', 'VADA'])
+      expect(@mock).to receive(:mget).with('snacks/1', 'snacks/2', 'snacks/3').once.and_return(%w(BAJJI BONDA VADA))
       expect(@lookup.snacks_for([1, 2, 3])).to match_array(%w(BAJJI BONDA VADA))
     end
 
     it 'should mget redis only for unique keys' do
-      expect(@mock).to receive(:mget).with(['snacks/1', 'snacks/2', 'snacks/3']).once.and_return(['BAJJI', 'BONDA', 'VADA'])
+      expect(@mock).to receive(:mget).with('snacks/1', 'snacks/2', 'snacks/3').once.and_return(%w(BAJJI BONDA VADA))
       expect(@lookup.snacks_for([1, 2, 3, 1, 2])).to match_array(%w(BAJJI BONDA VADA BAJJI BONDA))
+    end
+
+    it 'should get from cache' do
+      expect(@mock).to receive(:mget).with('snacks/1', 'snacks/2', 'snacks/3', 'snacks/4', 'snacks/5').once.and_return(%w(BAJJI BONDA VADA MEDU_VADA MASALA_VADA))
+      expect(@lookup.snacks_for([1, 2, 3, 4, 5])).to match_array(%w(BAJJI BONDA VADA MEDU_VADA MASALA_VADA))
+      expect(@lookup.snacks_for([1, 2, 3, 4, 5])).to match_array(%w(BAJJI BONDA VADA MEDU_VADA MASALA_VADA))
     end
   end
 
@@ -59,8 +65,8 @@ describe Looksist::RedisService do
     end
 
     it 'should not bomb when there are no values present' do
-      expect(@mock).to receive(:mget).with(['snacks/1', 'snacks/2', 'snacks/3']).once.and_return(['BAJJI', nil, 'VADA'])
-      expect(@lookup.snacks_for([1, 2, 3])).to match_array(["BAJJI", nil, "VADA"])
+      expect(@mock).to receive(:mget).with('snacks/1', 'snacks/2', 'snacks/3').once.and_return(['BAJJI', nil, 'VADA'])
+      expect(@lookup.snacks_for([1, 2, 3])).to match_array(['BAJJI', nil, 'VADA'])
     end
   end
 
@@ -74,7 +80,7 @@ describe Looksist::RedisService do
     end
 
     it 'should clear the local cache' do
-      expect(@mock).to receive(:mget).with(['snacks/1', 'snacks/2', 'snacks/3']).once.and_return(['BAJJI', nil, 'VADA'])
+      expect(@mock).to receive(:mget).with('snacks/1', 'snacks/2', 'snacks/3').once.and_return(['BAJJI', nil, 'VADA'])
       @lookup.snacks_for([1, 2, 3])
       expect(@lookup.cache.size).to eq(3)
       @lookup.flush_cache!

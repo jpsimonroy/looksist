@@ -33,8 +33,8 @@ describe Looksist::Hashed do
         inject after: :metrics, at: '$.table.menu', using: :item_id, populate: :item_name
       end
 
-      expect(@mock).to receive(:mget).with(['items/1']).and_return(['Idly'])
-      expect(@mock).to receive(:mget).with(['items/2']).and_return(['Pongal'])
+      expect(@mock).to receive(:mget).with(*['items/1']).and_return(['Idly'])
+      expect(@mock).to receive(:mget).with(*['items/2']).and_return(['Pongal'])
 
       expect(Menu.new.metrics).to eq({
                                          table: {
@@ -110,7 +110,7 @@ describe Looksist::Hashed do
         inject after: :metrics, at: '$.table.inner_table', using: :employee_id, populate: :employee_name
       end
 
-      expect(@mock).to receive(:mget).with(%w(employees/10 employees/20)).and_return(['emp 1', 'emp 2'])
+      expect(@mock).to receive(:mget).with(*%w(employees/10 employees/20)).and_return(['emp 1', 'emp 2'])
 
       expect(DeepHash.new.metrics).to eq({table: {
           inner_table: {
@@ -135,7 +135,7 @@ describe Looksist::Hashed do
         inject after: :metrics, at: :table, using: :employee_id, populate: :employee_name
       end
 
-      expect(@mock).to receive(:mget).with(%w(employees/1 employees/2)).and_return(['emp 1', 'emp 2'])
+      expect(@mock).to receive(:mget).with(*%w(employees/1 employees/2)).and_return(['emp 1', 'emp 2'])
 
       expect(HashService1.new.metrics).to eq({table: {
           employee_id: [1, 2],
@@ -160,9 +160,9 @@ describe Looksist::Hashed do
         inject after: :metrics, at: :table, using: :employer_id, populate: :employer_name
       end
 
-      expect(@mock).to receive(:mget).with(%w(employees/5 employees/6)).and_return(['emp 5', 'emp 6'])
+      expect(@mock).to receive(:mget).with(*%w(employees/5 employees/6)).and_return(['emp 5', 'emp 6'])
 
-      expect(@mock).to receive(:mget).with(%w(employers/3 employers/4)).and_return(['empr 3', 'empr 4'])
+      expect(@mock).to receive(:mget).with(*%w(employers/3 employers/4)).and_return(['empr 3', 'empr 4'])
 
       expect(HashService.new.metrics).to eq({table: {
           employee_id: [5, 6],
@@ -192,9 +192,9 @@ describe Looksist::Hashed do
       inject after: :metrics, at: '$.table.database', using: :employer_id, populate: :employer_name
     end
 
-    expect(@mock).to receive(:mget).with(%w(employees/15 employees/16)).and_return(['emp 15', 'emp 16'])
+    expect(@mock).to receive(:mget).with(*%w(employees/15 employees/16)).and_return(['emp 15', 'emp 16'])
 
-    expect(@mock).to receive(:mget).with(%w(employers/13 employers/14)).and_return(['empr 13', 'empr 14'])
+    expect(@mock).to receive(:mget).with(*%w(employers/13 employers/14)).and_return(['empr 13', 'empr 14'])
 
     expect(EmployeeHash.new.metrics).to eq({table: {
         database: {
@@ -267,9 +267,9 @@ describe Looksist::Hashed do
         inject after: :stock, at: :table, using: :dc_id, populate: :dc_name
       end
 
-      expect(@mock).to receive(:mget).with(%w(shrinks/1 shrinks/2)).and_return(['shrink 1', 'shrink 2'])
+      expect(@mock).to receive(:mget).with(*%w(shrinks/1 shrinks/2)).and_return(['shrink 1', 'shrink 2'])
 
-      expect(@mock).to receive(:mget).with(%w(dcs/7 dcs/8)).and_return(['dc 7', 'dc 8'])
+      expect(@mock).to receive(:mget).with(*%w(dcs/7 dcs/8)).and_return(['dc 7', 'dc 8'])
 
       hash_service_super = HashServiceSuper.new
       expect(hash_service_super.shrinkage).to eq({table: {
