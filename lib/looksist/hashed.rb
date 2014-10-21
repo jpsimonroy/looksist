@@ -4,6 +4,7 @@ require 'json'
 module Looksist
   module Hashed
     extend ActiveSupport::Concern
+    include Looksist::Common
 
     module ClassMethods
       def inject(opts)
@@ -38,9 +39,6 @@ module Looksist
     end
 
     private
-    def entity(entity_id)
-      entity_id.to_s.gsub('_id', '')
-    end
 
     def inject_attributes_at(hash_offset, opts)
       return nil unless hash_offset

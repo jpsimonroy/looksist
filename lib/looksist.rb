@@ -1,10 +1,9 @@
 require 'looksist/version'
 require 'jsonpath'
-require 'json'
+require 'looksist/common'
 require 'looksist/core'
 require 'looksist/redis_service'
 require 'looksist/hashed'
-require 'looksist/her_collection'
 require 'looksist/safe_lru_cache'
 
 
