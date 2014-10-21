@@ -43,14 +43,14 @@ module Looksist
     def inject_attributes_at(hash_offset, opts)
       return nil unless hash_offset
       keys = hash_offset[opts[:using]]
-      entity_name = entity(opts[:using])
+      entity_name = __entity__(opts[:using])
       values = Looksist.redis_service.send("#{entity_name}_for", keys)
       hash_offset[opts[:populate]] = values
       hash_offset
     end
 
     def inject_attributes_for(arry_of_hashes, opts)
-      entity_name = entity(opts[:using])
+      entity_name = __entity__(opts[:using])
       keys = (arry_of_hashes.collect { |i| i[opts[:using]] }).compact.uniq
       values = keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys)).to_h
       arry_of_hashes.each do |elt|

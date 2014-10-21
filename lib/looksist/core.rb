@@ -11,13 +11,13 @@ module Looksist
         if what.is_a? Array
           what.each do |method_name|
             define_method(method_name) do
-              JSON.parse(Looksist.redis_service.send("#{entity(bucket)}_for", self.send(using).try(:to_s)) || '{}')[method_name.to_s]
+              JSON.parse(Looksist.redis_service.send("#{__entity__(bucket)}_for", self.send(using).try(:to_s)) || '{}')[method_name.to_s]
             end
             self.lookup_attributes << method_name
           end
         else
           define_method(what) do
-            Looksist.redis_service.send("#{entity(bucket)}_for", self.send(using).try(:to_s))
+            Looksist.redis_service.send("#{__entity__(bucket)}_for", self.send(using).try(:to_s))
           end
           self.lookup_attributes << what.to_sym
         end
