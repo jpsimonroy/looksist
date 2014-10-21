@@ -52,11 +52,11 @@ module Looksist
     end
 
     def inject_attributes_for(arry_of_hashes, opts)
+      entity_name = entity(opts[:using])
+      keys = (arry_of_hashes.collect { |i| i[opts[:using]] }).compact.uniq
+      values = keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys)).to_h
       arry_of_hashes.each do |elt|
-        key = elt[opts[:using]]
-        entity_name = entity(opts[:using])
-        value = Looksist.redis_service.send("#{entity_name}_for", [key])
-        elt[opts[:populate]] = value.first
+        elt[opts[:populate]] = values[elt[opts[:using]]]
       end
     end
   end

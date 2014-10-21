@@ -33,8 +33,7 @@ describe Looksist::Hashed do
         inject after: :metrics, at: '$.table.menu', using: :item_id, populate: :item_name
       end
 
-      expect(@mock).to receive(:mget).with(*['items/1']).and_return(['Idly'])
-      expect(@mock).to receive(:mget).with(*['items/2']).and_return(['Pongal'])
+      expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(%w(Idly Pongal))
 
       expect(Menu.new.metrics).to eq({
                                          table: {

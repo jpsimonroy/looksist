@@ -25,7 +25,5 @@ module Looksist
         lookup.buffer_size = self.cache_buffer_size || 50000
       end
     end
-
   end
-
 end
