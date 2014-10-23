@@ -21,7 +21,8 @@ module Looksist
           self.class.instance_variable_get(:@rules)[after].each do |opts|
             if opts[:at].is_a? String
               hash = JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
-                i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts)
+                i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless i.empty?
+                i
               end.to_hash.deep_symbolize_keys
             else
               inject_attributes_at(hash[opts[:at]], opts)
@@ -41,7 +42,7 @@ module Looksist
     private
 
     def inject_attributes_at(hash_offset, opts)
-      return nil unless hash_offset
+      return hash_offset if hash_offset.nil? or hash_offset.empty?
       keys = hash_offset[opts[:using]]
       entity_name = __entity__(opts[:using])
       values = Looksist.redis_service.send("#{entity_name}_for", keys)

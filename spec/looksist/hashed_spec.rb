@@ -207,14 +207,27 @@ describe Looksist::Hashed do
 
   context 'handle no data' do
     it 'should not inject when data is not available' do
-        class EmptyResponse
-          include Looksist
-          def empty
-            {}
-          end
-          inject after: :empty, at: :'$.table', using: :subcat_id, populate: :sub_cat_name
+      class EmptyResponse
+        include Looksist
+
+        def empty
+          {:high_stock => {}, :low_shelf_life => {}, :in_elimination => {}, :inactive_with_stock => {}}
         end
-        expect(EmptyResponse.new.empty).to eq({})
+
+        inject after: :empty, at: :high_stock,
+               using: :sub_category_id, populate: :sub_category
+
+        inject after: :empty, at: '$.low_shelf_life',
+               using: :sub_category_id, populate: :sub_category
+
+        inject after: :empty, at: '$.in_elimination',
+               using: :sub_category_id, populate: :sub_category
+
+        inject after: :empty, at: '$.inactive_with_stock',
+               using: :sub_category_id, populate: :sub_category
+      end
+      expected_response = {:high_stock => {}, :low_shelf_life => {}, :in_elimination => {}, :inactive_with_stock => {}}
+      expect(EmptyResponse.new.empty).to eq(expected_response)
     end
 
     it 'should be capable to deep lookup and inject' do
@@ -233,10 +246,10 @@ describe Looksist::Hashed do
       end
 
       expect(EmptyMenu.new.metrics).to eq({
-                                         table: {
-                                             menu: []
-                                         }
-                                     })
+                                              table: {
+                                                  menu: []
+                                              }
+                                          })
     end
   end
 
