@@ -2,11 +2,18 @@ require 'active_support/all'
 require 'faraday_middleware'
 require 'her'
 require 'ostruct'
+require 'pry'
+require 'simplecov'
+
+SimpleCov.start do
+  add_filter '/spec/'
+  add_filter '/features/'
+end
+
 require 'looksist'
 require 'looksist/redis_service'
 require 'looksist/hashed'
 require 'looksist/safe_lru_cache'
-require 'pry'
 
 module Her
   module Model

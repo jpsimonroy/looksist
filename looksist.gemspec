@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'cucumber'
   spec.add_development_dependency 'redis'
   spec.add_development_dependency 'hiredis'
+  spec.add_development_dependency 'simplecov'
 
   spec.add_runtime_dependency 'jsonpath', '~> 0.5.6'
 
