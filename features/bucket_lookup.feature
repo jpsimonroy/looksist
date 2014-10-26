@@ -8,7 +8,7 @@ Feature: I should be able to look up all keys in a bucket by pattern so that I c
       | ids/2              | ID 2  |
       | ids/3              | ID 3  |
       | ids/4              | ID 4  |
-      | non_matching_ids/4 | ID 4  |
+      | non_matching_ids/4 | ID 5  |
     When I ask looksist to lookup by pattern "id"
     Then I see the response to be the following
       | key   | value |
