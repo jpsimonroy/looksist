@@ -53,6 +53,17 @@ describe Looksist do
 
   context 'Lazy Evaluation' do
     module LazyEval
+      class HerEmployee
+        include Her::Model
+        use_api TEST_API
+        include Looksist
+
+        lookup :name, using = :employee_id
+
+        def as_json(opts)
+          super(opts).merge(another_attr: 'Hello World')
+        end
+      end
       class Employee
         include Looksist
         attr_accessor :id
@@ -66,6 +77,7 @@ describe Looksist do
     it 'should not eager evaluate' do
       expect(@mock).to_not receive(:get)
       LazyEval::Employee.new(1)
+      LazyEval::HerEmployee.new(employee_id: 1)
     end
   end
 
@@ -137,7 +149,7 @@ describe Looksist do
     it 'should share storage between instances to improve performance' do
       employee_first_instance = Employee.new(1)
       expect(@mock).to receive(:get).once.with('ids/1')
-                                       .and_return({name: 'Employee Name', location: 'Chennai'}.to_json)
+                       .and_return({name: 'Employee Name', location: 'Chennai'}.to_json)
       employee_first_instance.name
 
       employee_second_instance = Employee.new(1)
