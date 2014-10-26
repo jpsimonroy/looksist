@@ -24,5 +24,11 @@ module Looksist
         lookup.buffer_size = self.cache_buffer_size || 50000
       end
     end
+
+    def bucket_dump(entity)
+      keys = Looksist.lookup_store.keys("#{entity.pluralize}*")
+      values = Looksist.redis_service.send("#{entity}_for", keys.collect{|i| i.split('/').last})
+      keys.zip(values).to_h
+    end
   end
 end

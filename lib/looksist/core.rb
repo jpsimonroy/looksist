@@ -29,7 +29,7 @@ module Looksist
     end
 
     included do |base|
-      base.class_attribute :lookup_attributes, :storage, :id_and_buckets
+      base.class_attribute :lookup_attributes, :id_and_buckets
     end
 
   end
