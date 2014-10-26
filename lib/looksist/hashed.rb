@@ -14,29 +14,28 @@ module Looksist
         @rules ||= {}
         (@rules[after] ||= []) << opts
 
-        return if @rules[after].length > 1
-
-        define_method("#{after}_with_inject") do |*args|
-          hash = send("#{after}_without_inject".to_sym, *args)
-          self.class.instance_variable_get(:@rules)[after].each do |opts|
-            if opts[:at].is_a? String
-              hash = JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
-                i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless i.empty?
-                i
-              end.to_hash.deep_symbolize_keys
-            else
-              inject_attributes_at(hash[opts[:at]], opts)
+        unless @rules[after].length > 1
+          define_method("#{after}_with_inject") do |*args|
+            hash = send("#{after}_without_inject".to_sym, *args)
+            self.class.instance_variable_get(:@rules)[after].each do |opts|
+              if opts[:at].is_a? String
+                hash = update_using_json_path(hash, opts).to_hash.deep_symbolize_keys
+              else
+                inject_attributes_at(hash[opts[:at]], opts)
+              end
             end
+            hash
           end
-          hash
+          alias_method_chain after, :inject
         end
-        alias_method_chain after, :inject
-
       end
+
+
     end
 
     included do |base|
       base.class_attribute :rules
+      base.rules = {}
     end
 
     private
@@ -48,6 +47,13 @@ module Looksist
       values = Looksist.redis_service.send("#{entity_name}_for", keys)
       hash_offset[opts[:populate]] = values
       hash_offset
+    end
+
+    def update_using_json_path(hash, opts)
+      JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
+        i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless i.empty?
+        i
+      end
     end
 
     def inject_attributes_for(arry_of_hashes, opts)
