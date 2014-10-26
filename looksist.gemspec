@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'redis'
   spec.add_development_dependency 'hiredis'
   spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'coveralls'
 
   spec.add_runtime_dependency 'jsonpath', '~> 0.5.6'
 
