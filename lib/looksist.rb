@@ -15,13 +15,13 @@ module Looksist
   include Hashed
 
   class << self
-    attr_accessor :lookup_store, :driver, :cache_buffer_size, :redis_service
+    attr_accessor :lookup_store, :driver, :cache_buffer_size, :redis_service, :l2_cache
 
     def configure
       yield self
       self.redis_service = Looksist::RedisService.instance do |lookup|
         lookup.client = self.lookup_store
-        lookup.buffer_size = self.cache_buffer_size || 50000
+        lookup.buffer_size = (self.l2_cache == :no_cache) ? 0 : (self.cache_buffer_size || 50000)
       end
     end
 

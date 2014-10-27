@@ -10,7 +10,6 @@ describe Looksist::Hashed do
   end
 
   context 'inject ' do
-
     it 'should be capable to deep lookup and inject' do
       class Menu
         include Looksist
