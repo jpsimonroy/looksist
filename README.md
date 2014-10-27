@@ -31,7 +31,7 @@ Or install it yourself as:
 
 ``` ruby
 Looksist.configure do |looksist|
-      looksist.lookup_store = Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
+      looksist.lookup_store = Redis.new(:url => ENV['REDIS_URL'], :driver => :hiredis)
       looksist.driver =  Looksist::Serializers::Her
 end
 ```
@@ -198,7 +198,7 @@ Looksist has support for an in memory L2 cache which it uses to optimize redis l
 
 ```ruby
 Looksist.configure do |looksist|
-      looksist.lookup_store = Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
+      looksist.lookup_store = Redis.new(:url => ENV['REDIS_URL'], :driver => :hiredis)
       looksist.driver =  Looksist::Serializers::Her
       looksist.l2_cache = :no_cache
 end
