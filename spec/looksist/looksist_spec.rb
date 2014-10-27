@@ -60,6 +60,51 @@ describe Looksist do
         expect(e.to_json).to eq("{\"nome\":\"Rajini\",\"age\":16,\"id\":1}")
       end
     end
+
+    context 'Look up support in case of Inheritance' do
+      it 'should also get parent class lookups during to json conversion' do
+
+        module InheritedLookUp
+          class Employee
+            include Her::Model
+            use_api TEST_API
+            include Looksist
+            attr_accessor :id
+            attr_accessor :department_id
+            lookup :name, using: :id, bucket_name: 'employees'
+
+            def initialize(id, department_id)
+              @id = id
+              @department_id = department_id
+            end
+
+            def as_json(opts)
+              super(opts).merge(id: @id)
+            end
+          end
+
+          class Manager < Employee
+            lookup :name, using: :department_id, as: {name: 'department_name'}
+
+            def is_manager?
+              true
+            end
+
+            def as_json(opts)
+              super(opts).merge(is_manager: is_manager?)
+            end
+          end
+        end
+
+        expect(@mock).to receive(:get).once.with('employees/1').and_return('SuperStar')
+        expect(@mock).to receive(:get).once.with('departments/2').and_return('Kollywood')
+
+        e = InheritedLookUp::Manager.new(1, 2)
+
+        expect(e.to_json).to eq("{\"department_name\":\"Kollywood\",\"name\":\"SuperStar\",\"id\":1,\"is_manager\":true}")
+      end
+    end
+
   end
   context 'with l2 cache' do
     before(:each) do
@@ -127,7 +172,7 @@ describe Looksist do
             end
           end
         end
-        expect(@mock).to receive(:get).never.with('employees_/1')
+        expect(@mock).to receive(:get).never.with('employees/1')
         e = TolerantLookUp::Employee.new
         expect(e.to_json).to eq('{}')
       end
@@ -291,5 +336,6 @@ describe Looksist do
         employee_second_instance.name
       end
     end
+
   end
 end

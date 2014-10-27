@@ -42,7 +42,12 @@ module Looksist
 
 
     def as_json(opts)
-      Looksist.driver.json_opts(self, self.class.lookup_attributes, opts)
+      parent_lookups = {}
+      class_lookups = self.class.lookup_attributes || {}
+      if self.class.superclass.respond_to?(:lookup_attributes)
+        parent_lookups = self.class.superclass.lookup_attributes || {}
+      end
+      Looksist.driver.json_opts(self, class_lookups.merge(parent_lookups), opts)
     end
 
   end
@@ -51,7 +56,7 @@ module Looksist
     class Her
       class << self
         def json_opts(obj, lookup_attributes, _)
-          lookup_attributes  ||= {}
+          lookup_attributes ||= {}
           other_attributes = lookup_attributes.keys.each_with_object({}) do |a, acc|
             using = lookup_attributes[a]
             acc[a] = obj.send(a) if obj.respond_to?(using)
