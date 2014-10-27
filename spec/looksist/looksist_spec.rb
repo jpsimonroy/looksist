@@ -18,7 +18,7 @@ describe Looksist do
           use_api TEST_API
           include Looksist
 
-          lookup :name, using = :employee_id
+          lookup :name, using: :employee_id
 
           def as_json(opts)
             super(opts).merge(another_attr: 'Hello World')
@@ -38,7 +38,7 @@ describe Looksist do
         class Employee
           include Looksist
           attr_accessor :id
-          lookup :name, using = :id, bucket_name = 'employees'
+          lookup :name, using: :id, bucket_name: 'employees'
 
           def initialize(id)
             @id = id
@@ -51,6 +51,57 @@ describe Looksist do
     end
   end
 
+  context 'Alias support for lookup' do
+    it 'should fetch attributes and use the alias specified in the api' do
+      module AliasLookup
+        class Employee
+          include Her::Model
+          use_api TEST_API
+          include Looksist
+          attr_accessor :id
+          lookup :name, using: :id, bucket_name: 'employees', as: {name: 'nome'}
+
+          def initialize(id)
+            @id = id
+          end
+
+          def as_json(opts)
+            super(opts).merge(id: @id)
+          end
+        end
+      end
+      expect(@mock).to receive(:get).once.with('employees/1').and_return('Rajini')
+      e = AliasLookup::Employee.new(1)
+      expect(e.nome).to eq('Rajini')
+      expect(e.to_json).to eq("{\"nome\":\"Rajini\",\"id\":1}")
+    end
+
+    it 'should fetch attributes and use the alias for specific attributes in the api' do
+      module AliasSpecificLookup
+        class Employee
+          include Her::Model
+          use_api TEST_API
+          include Looksist
+          attr_accessor :id
+          lookup [:name, :age], using: :id, as: {name: 'nome'}
+
+          def initialize(id)
+            @id = id
+          end
+
+          def as_json(opts)
+            super(opts).merge(id: @id)
+          end
+        end
+      end
+      expect(@mock).to receive(:get).once.with('ids/1').and_return({name: 'Rajini', age: 16}.to_json)
+      e = AliasSpecificLookup::Employee.new(1)
+      expect(e.nome).to eq('Rajini')
+      expect(e.age).to eq(16)
+      expect(e.to_json).to eq("{\"nome\":\"Rajini\",\"age\":16,\"id\":1}")
+    end
+  end
+
   context 'Lazy Evaluation' do
     module LazyEval
       class HerEmployee
@@ -58,7 +109,7 @@ describe Looksist do
         use_api TEST_API
         include Looksist
 
-        lookup :name, using = :employee_id
+        lookup :name, using: :employee_id
 
         def as_json(opts)
           super(opts).merge(another_attr: 'Hello World')
@@ -67,7 +118,7 @@ describe Looksist do
       class Employee
         include Looksist
         attr_accessor :id
-        lookup :name, using = :id, bucket_name = 'employees'
+        lookup :name, using: :id, bucket_name: 'employees'
 
         def initialize(id)
           @id = id
@@ -87,8 +138,8 @@ describe Looksist do
         class Employee
           include Looksist
           attr_accessor :id, :employee_id
-          lookup :name, using= :id
-          lookup :unavailable, using= :employee_id
+          lookup :name, using:  :id
+          lookup :unavailable, using: :employee_id
 
           def initialize(id)
             @id = @employee_id = id
@@ -109,9 +160,9 @@ describe Looksist do
           include Looksist
           attr_accessor :id, :employee_id, :contact_id
 
-          lookup [:name, :location], using=:id
-          lookup [:age, :sex], using=:employee_id
-          lookup [:pager, :cell], using=:contact_id
+          lookup [:name, :location], using: :id
+          lookup [:age, :sex], using: :employee_id
+          lookup [:pager, :cell], using: :contact_id
 
           def initialize(id)
             @contact_id = @id = @employee_id = id
@@ -140,7 +191,7 @@ describe Looksist do
       include Looksist
       attr_accessor :id
 
-      lookup [:name, :location], using=:id
+      lookup [:name, :location], using: :id
 
       def initialize(id)
         @id = id

@@ -4,27 +4,38 @@ module Looksist
     include Looksist::Common
 
     module ClassMethods
-      def lookup(what, using, bucket = using)
+      def lookup(what, opts)
+        unless opts.keys.all? { |k| [:using, :bucket_name, :as].include? k }
+          raise 'Incorrect usage: Invalid parameter specified'
+        end
+        using, bucket_name, as = opts[:using], opts[:bucket_name] || opts[:using], opts[:as]
         if what.is_a? Array
-          setup_composite_lookup(bucket, using, what)
+          setup_composite_lookup(bucket_name, using, what, as)
         else
-          self.lookup_attributes << what.to_sym
-          define_method(what) do
-            Looksist.redis_service.send("#{__entity__(bucket)}_for", self.send(using).try(:to_s))
+          alias_what = find_alias(as, what)
+          self.lookup_attributes << alias_what
+          define_method(alias_what) do
+            Looksist.redis_service.send("#{__entity__(bucket_name)}_for", self.send(using).try(:to_s))
           end
         end
       end
 
       private
-      def setup_composite_lookup(bucket, using, what)
+      def setup_composite_lookup(bucket, using, what, as)
         what.each do |method_name|
-          define_method(method_name) do
+          alias_method_name = find_alias(as, method_name)
+          define_method(alias_method_name) do
             JSON.parse(Looksist.redis_service.send("#{__entity__(bucket)}_for", self.send(using).try(:to_s)) || '{}')[method_name.to_s]
           end
-          self.lookup_attributes << method_name
+          self.lookup_attributes << alias_method_name
         end
       end
+
+      def find_alias(as_map, what)
+        (as_map and as_map.has_key?(what)) ? as_map[what].to_sym : what
+      end
     end
+
 
     def as_json(opts)
       Looksist.driver.json_opts(self, opts)
