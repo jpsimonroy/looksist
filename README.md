@@ -186,3 +186,17 @@ it 'should be capable to deep lookup and inject' do
     end
 ```
 
+### Controlling the L2 cache
+Looksist has support for an in memory L2 cache which it uses to optimize redis lookups. To disable L2 cache initialize looksists as below. 
+
+* Note that in no L2 cache mode, all lookups would go to redis and the gem would not optimize redundant lookups.
+* Hash based lookups would still see optimizations which come from performing unique on keys when injecting values.
+
+```ruby
+Looksist.configure do |looksist|
+      looksist.lookup_store = Redis.new(:url => (ENV['REDIS_URL'], :driver => :hiredis)
+      looksist.driver =  Looksist::Serializers::Her
+      looksist.l2_cache = :no_cache
+end
+
+```
