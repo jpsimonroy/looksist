@@ -8,7 +8,7 @@ module Looksist
       attr_accessor :lookup_attributes
 
       def lookup(what, opts)
-        @lookup_attributes ||= []
+        @lookup_attributes ||= {}
         unless opts.keys.all? { |k| [:using, :bucket_name, :as].include? k }
           raise 'Incorrect usage: Invalid parameter specified'
         end
@@ -17,7 +17,7 @@ module Looksist
           setup_composite_lookup(bucket_name, using, what, as)
         else
           alias_what = find_alias(as, what)
-          @lookup_attributes << alias_what
+          @lookup_attributes[alias_what] = opts[:using]
           define_method(alias_what) do
             Looksist.redis_service.send("#{__entity__(bucket_name)}_for", self.send(using).try(:to_s))
           end
@@ -31,7 +31,7 @@ module Looksist
           define_method(alias_method_name) do
             JSON.parse(Looksist.redis_service.send("#{__entity__(bucket)}_for", self.send(using).try(:to_s)) || '{}')[method_name.to_s]
           end
-          @lookup_attributes << alias_method_name
+          @lookup_attributes[alias_method_name] = using
         end
       end
 
@@ -51,8 +51,12 @@ module Looksist
     class Her
       class << self
         def json_opts(obj, _)
-          lookup_attributes = obj.class.instance_variable_get(:@lookup_attributes) || []
-          obj.attributes.merge(lookup_attributes.each_with_object({}) { |a, acc| acc[a] = obj.send(a) })
+          lookup_attributes = obj.class.lookup_attributes || {}
+          other_attributes = lookup_attributes.keys.each_with_object({}) do |a, acc|
+            using = lookup_attributes[a]
+            acc[a] = obj.send(a) if obj.respond_to?(using)
+          end
+          obj.attributes.merge(other_attributes)
         end
       end
     end

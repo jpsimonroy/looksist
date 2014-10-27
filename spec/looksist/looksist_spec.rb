@@ -51,6 +51,27 @@ describe Looksist do
     end
   end
 
+  context 'Tolerant lookup' do
+    it 'should not do a lookup when the key attribute is not defined' do
+      module TolerantLookUp
+        class Employee
+          include Her::Model
+          use_api TEST_API
+          include Looksist
+
+          lookup :name, using: :employee_id
+
+          def as_json(opts)
+            super(opts)
+          end
+        end
+      end
+      expect(@mock).to receive(:get).never.with('employees_/1')
+      e = TolerantLookUp::Employee.new
+      expect(e.to_json).to eq('{}')
+    end
+  end
+
   context 'Alias support for lookup' do
     it 'should fetch attributes and use the alias specified in the api' do
       module AliasLookup
