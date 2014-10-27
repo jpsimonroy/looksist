@@ -340,7 +340,6 @@ describe Looksist::Hashed do
       @mock = {}
       Looksist.configure do |looksist|
         looksist.lookup_store = @mock
-        looksist.cache_buffer_size = 10
         looksist.l2_cache = :no_cache
       end
     end
