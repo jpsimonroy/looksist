@@ -4,7 +4,11 @@ module Looksist
     include Looksist::Common
 
     module ClassMethods
+
+      attr_accessor :lookup_attributes
+
       def lookup(what, opts)
+        @lookup_attributes ||= []
         unless opts.keys.all? { |k| [:using, :bucket_name, :as].include? k }
           raise 'Incorrect usage: Invalid parameter specified'
         end
@@ -13,7 +17,7 @@ module Looksist
           setup_composite_lookup(bucket_name, using, what, as)
         else
           alias_what = find_alias(as, what)
-          self.lookup_attributes << alias_what
+          @lookup_attributes << alias_what
           define_method(alias_what) do
             Looksist.redis_service.send("#{__entity__(bucket_name)}_for", self.send(using).try(:to_s))
           end
@@ -27,7 +31,7 @@ module Looksist
           define_method(alias_method_name) do
             JSON.parse(Looksist.redis_service.send("#{__entity__(bucket)}_for", self.send(using).try(:to_s)) || '{}')[method_name.to_s]
           end
-          self.lookup_attributes << alias_method_name
+          @lookup_attributes << alias_method_name
         end
       end
 
@@ -41,18 +45,14 @@ module Looksist
       Looksist.driver.json_opts(self, opts)
     end
 
-    included do |base|
-      base.class_attribute :lookup_attributes
-      base.lookup_attributes = []
-    end
-
   end
 
   module Serializers
     class Her
       class << self
         def json_opts(obj, _)
-          obj.attributes.merge(obj.class.lookup_attributes.each_with_object({}) { |a, acc| acc[a] = obj.send(a) })
+          lookup_attributes = obj.class.instance_variable_get(:@lookup_attributes) || []
+          obj.attributes.merge(lookup_attributes.each_with_object({}) { |a, acc| acc[a] = obj.send(a) })
         end
       end
     end
