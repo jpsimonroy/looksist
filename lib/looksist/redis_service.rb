@@ -34,12 +34,12 @@ module Looksist
     def find_all(entity, ids)
       raise 'Buffer overflow! Increase buffer size' if  ids.length > @buffer_size && @buffer_size != 0
       keys = ids.collect { |id| redis_key(entity, id) }
-      missed_keys = cache_op(proc_from { keys.uniq }) { (keys - @cache.keys).uniq }
+      missed_keys = cache_op(proc { keys.uniq }) { (keys - @cache.keys).uniq }
       unless missed_keys.empty?
         response = Hash[*missed_keys.zip(@client.mget *missed_keys).flatten]
         cache_op { @cache.merge!(response) }
       end
-      (cache_op(proc_from { keys.collect {|k| response[k] } }) { @cache.mslice(keys) })
+      (cache_op(proc { keys.collect {|k| response[k] } }) { @cache.mslice(keys) })
     end
 
     def cache_op(computed = nil)
@@ -58,15 +58,13 @@ module Looksist
     end
 
     def fetch(key, &block)
-      (cache_op(proc_from { block.call }) { @cache[key] ||= block.call })
+      (cache_op(proc { block.call }) { @cache[key] ||= block.call })
     end
 
     def redis_key(entity, id)
       "#{entity.pluralize}/#{id}"
     end
 
-    def proc_from
-      Proc.new
-    end
+
   end
 end
