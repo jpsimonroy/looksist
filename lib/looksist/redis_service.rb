@@ -36,10 +36,10 @@ module Looksist
       keys = ids.collect { |id| redis_key(entity, id) }
       missed_keys = cache_op(proc_from { keys.uniq }) { (keys - @cache.keys).uniq }
       unless missed_keys.empty?
-        values = @client.mget *missed_keys
-        cache_op { @cache.merge!(Hash[*missed_keys.zip(values).flatten]) }
+        response = Hash[*missed_keys.zip(@client.mget *missed_keys).flatten]
+        cache_op { @cache.merge!(response) }
       end
-      (cache_op(proc_from { values }) { @cache.mslice(keys) })
+      (cache_op(proc_from { keys.collect {|k| response[k] } }) { @cache.mslice(keys) })
     end
 
     def cache_op(computed = nil)

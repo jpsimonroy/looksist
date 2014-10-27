@@ -42,7 +42,7 @@ module Looksist
 
 
     def as_json(opts)
-      Looksist.driver.json_opts(self, opts)
+      Looksist.driver.json_opts(self, self.class.lookup_attributes, opts)
     end
 
   end
@@ -50,8 +50,8 @@ module Looksist
   module Serializers
     class Her
       class << self
-        def json_opts(obj, _)
-          lookup_attributes = obj.class.lookup_attributes || {}
+        def json_opts(obj, lookup_attributes, _)
+          lookup_attributes  ||= {}
           other_attributes = lookup_attributes.keys.each_with_object({}) do |a, acc|
             using = lookup_attributes[a]
             acc[a] = obj.send(a) if obj.respond_to?(using)
