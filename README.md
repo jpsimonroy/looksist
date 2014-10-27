@@ -45,7 +45,7 @@ it 'should generate declarative attributes on the model with simple lookup value
         class Employee
           include Looksist
           attr_accessor :id
-          lookup :name, using= :id
+          lookup :name, using: :id
 
           def initialize(id)
             @id = id
@@ -58,18 +58,22 @@ it 'should generate declarative attributes on the model with simple lookup value
       expect(e.name).to eq('Employee Name')
 end
 ```
-lookup takes the following form:
+lookup can take the following forms:
 
 ``` ruby
 # will lookup "employees/#{employee_id}" from the store
-lookup :name, using = :employee_id  
+lookup :name, using: :employee_id  
 
 # will lookup "stars/#{employee_id}" from the store
-lookup :name, using = :employee_id, bucket_name="stars" 
+lookup :name, using: :employee_id, bucket_name="stars" 
 
 # will lookup "stars/#{employee_id}" from the store 
 # for an object with two attributes (name, location)
-lookup [:name, :location], using = :employee_id 
+lookup [:name, :location], using: :employee_id 
+
+# will lookup "stars/#{employee_id}" from the store 
+# for an object with two attributes (name, location) and expose name as nome
+lookup [:name, :age], using: :id, as: {name: 'nome'}
 
 ```
 
