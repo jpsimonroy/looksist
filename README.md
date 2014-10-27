@@ -65,7 +65,7 @@ lookup can take the following forms:
 lookup :name, using: :employee_id  
 
 # will lookup "stars/#{employee_id}" from the store
-lookup :name, using: :employee_id, bucket_name="stars" 
+lookup :name, using: :employee_id, bucket_name: "stars" 
 
 # will lookup "stars/#{employee_id}" from the store 
 # for an object with two attributes (name, location)
