@@ -45,7 +45,8 @@ module Looksist
       keys = hash_offset[opts[:using]]
       entity_name = __entity__(opts[:bucket_name] || opts[:using])
       values = Looksist.redis_service.send("#{entity_name}_for", keys)
-      hash_offset[opts[:populate]] = values
+      alias_method = find_alias(opts, opts[:populate])
+      hash_offset[alias_method] = values
       hash_offset
     end
 
@@ -65,9 +66,29 @@ module Looksist
       entity_name = __entity__(opts[:bucket_name] || opts[:using])
       keys = (arry_of_hashes.collect { |i| i[opts[:using]] }).compact.uniq
       values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
+      opts[:populate].is_a?(Array) ? composite_attribute_lookup(arry_of_hashes, opts, values) : single_attribute_lookup(arry_of_hashes, opts, values)
+    end
+
+    def single_attribute_lookup(arry_of_hashes, opts, values)
       arry_of_hashes.each do |elt|
-        elt[opts[:populate]] = values[elt[opts[:using]]]
+        alias_method = find_alias(opts, opts[:populate])
+        elt[alias_method] = values[elt[opts[:using]]]
       end
+    end
+
+    def composite_attribute_lookup(arry_of_hashes, opts, values)
+      arry_of_hashes.each do |elt|
+        opts[:populate].each do |_key|
+          parsed_key = JSON.parse(values[elt[opts[:using]]]).deep_symbolize_keys
+          alias_method = find_alias(opts, _key)
+          elt[alias_method] = parsed_key[_key]
+        end
+      end
+    end
+
+    def find_alias(opts,what)
+      as_map = opts[:as]
+      (as_map and as_map.has_key?(what)) ? as_map[what].to_sym : what
     end
   end
 end

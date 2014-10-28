@@ -387,7 +387,7 @@ describe Looksist::Hashed do
           ]
         end
 
-        inject after: :metrics, at: '$', using: :item_id, populate: :item_name
+        inject after: :metrics, at: '$', using: :item_id, populate: :item_name, as: {item_name: 'dish_name'}
       end
 
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(%w(Idly Pongal))
@@ -395,13 +395,42 @@ describe Looksist::Hashed do
       expect(ArrayOfHashes.new.metrics).to eq(
                                                [{
                                                     item_id: 1,
-                                                    item_name: 'Idly'
+                                                    dish_name: 'Idly'
                                                 },
                                                 {
                                                     item_id: 2,
-                                                    item_name: 'Pongal'
+                                                    dish_name: 'Pongal'
                                                 }]
                                            )
+
+      end
+
+      it 'should work for multiple attributes' do
+      class HashWithMultipleAttributes
+        include Looksist
+
+        def metrics
+          [
+              {
+                  hero_id: 1
+          },
+              {
+                  hero_id: 2
+          }
+          ]
+        end
+
+        inject after: :metrics, at: '$', using: :hero_id, populate: [:name,:mnemonic], as: {name: 'hero_name', mnemonic: 'hero_mnemonic'}
+      end
+      js1 = {name: 'Rajini', mnemonic: 'SuperStart'}.to_json
+      js2 = {name: 'Kamal', mnemonic: 'Ulaganayagan'}.to_json
+      jsons = [js1,js2]
+      expect(@mock).to receive(:mget).once.with(*%w(heros/1 heros/2)).and_return(jsons)
+
+      expect(HashWithMultipleAttributes.new.metrics).to eq(
+                                                            [{:hero_id=>1, :hero_name=>"Rajini", :hero_mnemonic=>"SuperStart"},
+                                                            {:hero_id=>2, :hero_name=>"Kamal", :hero_mnemonic=>"Ulaganayagan"}]
+      )
     end
   end
 end
