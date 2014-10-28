@@ -1,6 +1,6 @@
 require 'active_support/all'
-require 'faraday_middleware'
 require 'her'
+require 'faraday'
 require 'ostruct'
 require 'pry'
 require 'simplecov'
@@ -32,8 +32,6 @@ end
 TEST_API = Her::API.new
 
 config = Proc.new do |conn|
-  conn.use FaradayMiddleware::EncodeJson
-  conn.use Faraday::Request::UrlEncoded
   conn.use Her::Middleware::DefaultParseJSON
   conn.use Faraday::Adapter::NetHttp
   conn.use Faraday::Response::RaiseError

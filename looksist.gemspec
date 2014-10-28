@@ -25,11 +25,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'activesupport'
   spec.add_development_dependency 'activemodel'
   spec.add_development_dependency 'her'
-  spec.add_development_dependency 'faraday'
-  spec.add_development_dependency 'faraday_middleware'
   spec.add_development_dependency 'cucumber'
   spec.add_development_dependency 'redis'
-  spec.add_development_dependency 'hiredis'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'coveralls'
 

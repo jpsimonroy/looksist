@@ -1,5 +1,6 @@
 language: ruby
 rvm:
   - ruby-2.1.2
+  - jruby-1.7.16
 services:
   - redis-server

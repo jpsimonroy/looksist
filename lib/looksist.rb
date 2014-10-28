@@ -28,7 +28,7 @@ module Looksist
     def bucket_dump(entity)
       keys = Looksist.lookup_store.keys("#{entity.pluralize}*")
       values = Looksist.redis_service.send("#{entity}_for", keys.collect{|i| i.split('/').last})
-      (keys.collect {|i| i.split('/').last}).zip(values).to_h
+      Hash[(keys.collect {|i| i.split('/').last}).zip(values)]
     end
   end
 end
