@@ -380,10 +380,10 @@ describe Looksist::Hashed do
           [
               {
                   item_id: 1
-          },
+              },
               {
                   item_id: 2
-          }
+              }
           ]
         end
 
@@ -393,15 +393,15 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(%w(Idly Pongal))
 
       expect(ArrayOfHashes.new.metrics).to eq(
-                                      [{
-                                           item_id: 1,
-          item_name: 'Idly'
-      },
-          {
-              item_id: 2,
-          item_name: 'Pongal'
-      }]
-      )
+                                               [{
+                                                    item_id: 1,
+                                                    item_name: 'Idly'
+                                                },
+                                                {
+                                                    item_id: 2,
+                                                    item_name: 'Pongal'
+                                                }]
+                                           )
     end
   end
 end

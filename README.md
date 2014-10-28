@@ -96,12 +96,12 @@ it 'should inject single attribute into array of hashes' do
                   employee_id: 5
               },
               {
-              employer_id: 3
+                  employer_id: 3
               }
           [
         end
 
-        inject after: :metrics, at: $, 
+        inject after: :metrics, at: '$', 
                     using: :employee_id, populate: :employee_name
       end
       # Removed mock expectations, look at the tests for actuals
