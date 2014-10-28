@@ -41,23 +41,17 @@ describe Looksist do
             include Her::Model
             use_api TEST_API
             include Looksist
-            attr_accessor :id
             lookup [:name, :age], using: :id, as: {name: 'nome'}
-
-            def initialize(id)
-              @id = id
-            end
-
             def as_json(opts)
-              super(opts).merge(id: @id)
+              super(opts).merge(attributes)
             end
           end
         end
         expect(@mock).to receive(:get).exactly(4).times.with('ids/1').and_return({name: 'Rajini', age: 16}.to_json)
-        e = AliasSpecificLookup::NoCacheEmployee.new(1)
+        e = AliasSpecificLookup::NoCacheEmployee.new(id:1)
         expect(e.nome).to eq('Rajini')
         expect(e.age).to eq(16)
-        expect(e.to_json).to eq("{\"nome\":\"Rajini\",\"age\":16,\"id\":1}")
+        expect(e.to_json).to eq("{\"id\":1,\"nome\":\"Rajini\",\"age\":16}")
       end
     end
 
@@ -69,17 +63,10 @@ describe Looksist do
             include Her::Model
             use_api TEST_API
             include Looksist
-            attr_accessor :id
-            attr_accessor :department_id
             lookup :name, using: :id, bucket_name: 'employees'
 
-            def initialize(id, department_id)
-              @id = id
-              @department_id = department_id
-            end
-
             def as_json(opts)
-              super(opts).merge(id: @id)
+              super(opts).merge(attributes)
             end
           end
 
@@ -99,9 +86,9 @@ describe Looksist do
         expect(@mock).to receive(:get).once.with('employees/1').and_return('SuperStar')
         expect(@mock).to receive(:get).once.with('departments/2').and_return('Kollywood')
 
-        e = InheritedLookUp::Manager.new(1, 2)
+        e = InheritedLookUp::Manager.new(id:1, department_id:2)
 
-        expect(e.to_json).to eq("{\"department_name\":\"Kollywood\",\"name\":\"SuperStar\",\"id\":1,\"is_manager\":true}")
+        expect(e.to_json).to eq("{\"department_id\":2,\"id\":1,\"department_name\":\"Kollywood\",\"name\":\"SuperStar\",\"is_manager\":true}")
       end
     end
 
@@ -164,17 +151,20 @@ describe Looksist do
             include Her::Model
             use_api TEST_API
             include Looksist
-
-            lookup :name, using: :employee_id
+            lookup :name, using: :id, bucket_name: 'employees'
 
             def as_json(opts)
               super(opts)
             end
+
           end
         end
-        expect(@mock).to receive(:get).never.with('employees/1')
-        e = TolerantLookUp::Employee.new
-        expect(e.to_json).to eq('{}')
+        expect(@mock).to receive(:get).once.with('employees/1').and_return('RajiniKanth')
+        expect(@mock).to receive(:get).never.with('employees/')
+        e1 = TolerantLookUp::Employee.new(id:1)
+        e2 = TolerantLookUp::Employee.new
+        expect(e1.to_json).to eq("{\"id\":1,\"name\":\"RajiniKanth\"}")
+        expect(e2.to_json).to eq('{}')
       end
     end
 
@@ -185,22 +175,17 @@ describe Looksist do
             include Her::Model
             use_api TEST_API
             include Looksist
-            attr_accessor :id
             lookup :name, using: :id, bucket_name: 'employees', as: {name: 'nome'}
 
-            def initialize(id)
-              @id = id
-            end
-
             def as_json(opts)
-              super(opts).merge(id: @id)
+              super(opts).merge(attributes)
             end
           end
         end
         expect(@mock).to receive(:get).once.with('employees/1').and_return('Rajini')
-        e = AliasLookup::Employee.new(1)
+        e = AliasLookup::Employee.new(id: 1)
         expect(e.nome).to eq('Rajini')
-        expect(e.to_json).to eq("{\"nome\":\"Rajini\",\"id\":1}")
+        expect(e.to_json).to eq("{\"id\":1,\"nome\":\"Rajini\"}")
       end
 
       it 'should fetch attributes and use the alias for specific attributes in the api' do
@@ -209,23 +194,18 @@ describe Looksist do
             include Her::Model
             use_api TEST_API
             include Looksist
-            attr_accessor :id
             lookup [:name, :age], using: :id, as: {name: 'nome'}
 
-            def initialize(id)
-              @id = id
-            end
-
             def as_json(opts)
-              super(opts).merge(id: @id)
+              super(opts).merge(attributes)
             end
           end
         end
         expect(@mock).to receive(:get).once.with('ids/1').and_return({name: 'Rajini', age: 16}.to_json)
-        e = AliasSpecificLookup::Employee.new(1)
+        e = AliasSpecificLookup::Employee.new(id: 1)
         expect(e.nome).to eq('Rajini')
         expect(e.age).to eq(16)
-        expect(e.to_json).to eq("{\"nome\":\"Rajini\",\"age\":16,\"id\":1}")
+        expect(e.to_json).to eq("{\"id\":1,\"nome\":\"Rajini\",\"age\":16}")
       end
     end
 
@@ -290,7 +270,6 @@ describe Looksist do
             lookup [:name, :location], using: :id
             lookup [:age, :sex], using: :employee_id
             lookup [:pager, :cell], using: :contact_id
-
             def initialize(id)
               @contact_id = @id = @employee_id = id
             end

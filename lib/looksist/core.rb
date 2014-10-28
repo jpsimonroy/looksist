@@ -59,7 +59,7 @@ module Looksist
           lookup_attributes ||= {}
           other_attributes = lookup_attributes.keys.each_with_object({}) do |a, acc|
             using = lookup_attributes[a]
-            acc[a] = obj.send(a) if obj.respond_to?(using)
+            acc[a] = obj.send(a) if obj.attributes.has_key?(using.to_s)
           end
           obj.attributes.merge(other_attributes)
         end
