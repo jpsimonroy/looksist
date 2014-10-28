@@ -15,14 +15,17 @@ Add this line to your application's Gemfile:
 
     gem 'looksist'
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install looksist
-
+## Supported Ruby Versions
+    
+    ruby 2.1
+    ruby 1.9.3
+    jruby 1.7
+    
+## Dependencies
+    
+    JsonPath - required by the gem. 
+    ActiveSupport - external dependency, make sure to require it in your project.
+    
 ## Usage
 
 ### With Object Models (Her, Active Resource or any of your choice)
