@@ -28,3 +28,17 @@ Feature: Enrich hashes
       | value  |
       | Idly   |
       | Pongal |
+
+  @array_of_hashes
+  Scenario: I should be able to enrich an array of hashes
+    Given I have the following keys setup in Redis
+      | key     | value    |
+      | items/1 | Idly     |
+      | items/2 | Pongal   |
+      | items/3 | Off Menu |
+    When I ask ArrayOfHash for menu
+    Then I should see the following "item name" in all the hashes
+      | value    |
+      | Idly     |
+      | Pongal   |
+      | Off Menu |

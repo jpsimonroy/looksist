@@ -1,4 +1,4 @@
-When(/^I ask (DeepHash|Menu) for (metrics|menu)$/) do |lookup_service, method|
+When(/^I ask (DeepHash|Menu|ArrayOfHash) for (metrics|menu)$/) do |lookup_service, method|
   @enriched_hash = Object.const_get(lookup_service.classify).new.send(method)
 end
 
@@ -11,4 +11,15 @@ end
 
 Then(/^I should see the following "([^"]*)" enriched for each sub hash at "([^"]*)"$/) do |name, jsonpath, table|
   expect(JsonPath.new(jsonpath).on(@enriched_hash.with_indifferent_access).first.collect { |i| i[name.parameterize.underscore.to_sym] }).to eq(table.hashes.collect { |i| i[:value] })
+end
+
+
+Then(/^I should see the following "([^"]*)" in all the hashes$/) do |name, table|
+  expected_names = table.hashes.collect { |row| row[:value] }
+  method_name = "#{name.parameterize.underscore.singularize}"
+  actual_names = @enriched_hash.collect do |elt|
+    elt.with_indifferent_access["#{method_name}"]
+  end
+  expect(actual_names).to eq(expected_names)
+
 end

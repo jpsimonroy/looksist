@@ -19,7 +19,7 @@ module Looksist
             hash = send("#{after}_without_inject".to_sym, *args)
             self.class.instance_variable_get(:@rules)[after].each do |opts|
               if opts[:at].is_a? String
-                hash = update_using_json_path(hash, opts).to_hash.deep_symbolize_keys
+                hash = update_using_json_path(hash, opts)
               else
                 inject_attributes_at(hash[opts[:at]], opts)
               end
@@ -50,11 +50,16 @@ module Looksist
     end
 
     def update_using_json_path(hash, opts)
-      JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
-        i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless i.empty?
-        i
+      if hash.is_a?(Hash)
+        JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
+          i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless (i.nil? or i.empty?)
+          i
+        end.to_hash.deep_symbolize_keys
+      else
+        inject_attributes_for(hash, opts)
       end
     end
+
 
     def inject_attributes_for(arry_of_hashes, opts)
       entity_name = __entity__(opts[:bucket_name] || opts[:using])

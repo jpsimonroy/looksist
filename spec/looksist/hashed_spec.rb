@@ -49,6 +49,7 @@ describe Looksist::Hashed do
                                        })
       end
 
+
       it 'should be capable to deep lookup and inject from custom bucket' do
         class CustomizedMenu
           include Looksist
@@ -369,6 +370,38 @@ describe Looksist::Hashed do
               employee_name: ['emp 1', 'emp 1']
           }
       }})
+    end
+
+    it 'should work for array of hashes' do
+      class ArrayOfHashes
+        include Looksist
+
+        def metrics
+          [
+              {
+                  item_id: 1
+          },
+              {
+                  item_id: 2
+          }
+          ]
+        end
+
+        inject after: :metrics, at: '$', using: :item_id, populate: :item_name
+      end
+
+      expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(%w(Idly Pongal))
+
+      expect(ArrayOfHashes.new.metrics).to eq(
+                                      [{
+                                           item_id: 1,
+          item_name: 'Idly'
+      },
+          {
+              item_id: 2,
+          item_name: 'Pongal'
+      }]
+      )
     end
   end
 end
