@@ -83,6 +83,35 @@ lookup [:name, :age], using: :id, as: {name: 'nome'}
 ### With Plain Hashes
 
 
+#### Array Of Hashes
+
+```ruby
+it 'should inject single attribute into array of hashes' do
+      class HashService
+        include Looksist
+
+        def metrics
+          [
+              {
+                  employee_id: 5
+              },
+              {
+              employer_id: 3
+              }
+          [
+        end
+
+        inject after: :metrics, at: $, 
+                    using: :employee_id, populate: :employee_name
+      end
+      # Removed mock expectations, look at the tests for actuals
+      expect(HashService.new.metrics).to eq([{employeed_id: 5, employee_name: 'Emp 5'},{employeed_id: 3, employee_name: 'Emp 3'}])
+    end
+  end
+
+```
+
+
 #### Columnar Hashes
 
 * First Level look ups
