@@ -403,9 +403,9 @@ describe Looksist::Hashed do
                                                 }]
                                            )
 
-      end
+    end
 
-      it 'should work for multiple attributes' do
+    it 'should work for multiple attributes' do
       class HashWithMultipleAttributes
         include Looksist
 
@@ -413,24 +413,44 @@ describe Looksist::Hashed do
           [
               {
                   hero_id: 1
-          },
+              },
               {
                   hero_id: 2
-          }
+              }
           ]
         end
 
-        inject after: :metrics, at: '$', using: :hero_id, populate: [:name,:mnemonic], as: {name: 'hero_name', mnemonic: 'hero_mnemonic'}
+        inject after: :metrics, at: '$', using: :hero_id, populate: [:name, :mnemonic], as: {name: 'hero_name', mnemonic: 'hero_mnemonic'}
       end
       js1 = {name: 'Rajini', mnemonic: 'SuperStart'}.to_json
       js2 = {name: 'Kamal', mnemonic: 'Ulaganayagan'}.to_json
-      jsons = [js1,js2]
+      jsons = [js1, js2]
       expect(@mock).to receive(:mget).once.with(*%w(heros/1 heros/2)).and_return(jsons)
 
       expect(HashWithMultipleAttributes.new.metrics).to eq(
-                                                            [{:hero_id=>1, :hero_name=>"Rajini", :hero_mnemonic=>"SuperStart"},
-                                                            {:hero_id=>2, :hero_name=>"Kamal", :hero_mnemonic=>"Ulaganayagan"}]
-      )
+                                                            [{:hero_id => 1, :hero_name => "Rajini", :hero_mnemonic => "SuperStart"},
+                                                             {:hero_id => 2, :hero_name => "Kamal", :hero_mnemonic => "Ulaganayagan"}]
+                                                        )
     end
+
+    it 'should work for class methods' do
+      class SelfHelp
+        include Looksist
+
+        def self.help_me
+          [
+              {
+                  a: 1
+              }
+          ]
+        end
+
+        class_inject after: :help_me, at: '$', using: :a, bucket_name: 'ids', populate: :name
+      end
+
+      expect(@mock).to receive(:mget).once.with('ids/1').and_return(['RC'])
+      expect(SelfHelp.help_me).to eq([{:a => 1, :name => "RC"}])
+    end
+
   end
 end

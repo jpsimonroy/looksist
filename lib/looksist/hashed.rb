@@ -19,9 +19,9 @@ module Looksist
             hash = send("#{after}_without_inject".to_sym, *args)
             self.class.instance_variable_get(:@rules)[after].each do |opts|
               if opts[:at].is_a? String
-                hash = update_using_json_path(hash, opts)
+                hash = self.class.update_using_json_path(hash, opts)
               else
-                inject_attributes_at(hash[opts[:at]], opts)
+                self.class.inject_attributes_at(hash[opts[:at]], opts)
               end
             end
             hash
@@ -30,6 +30,78 @@ module Looksist
         end
       end
 
+      def class_inject(opts)
+        raise 'Incorrect usage' unless [:after, :using, :populate].all? { |e| opts.keys.include? e }
+
+        after = opts[:after]
+        @rules ||= {}
+        (@rules[after] ||= []) << opts
+
+        unless @rules[after].length > 1
+          define_singleton_method("#{after}_with_inject") do |*args|
+            hash = send("#{after}_without_inject".to_sym, *args)
+            @rules[after].each do |opts|
+              if opts[:at].is_a? String
+                hash = update_using_json_path(hash, opts)
+              else
+                inject_attributes_at(hash[opts[:at]], opts)
+              end
+            end
+            hash
+          end
+          self.singleton_class.send(:alias_method_chain, after, :inject)
+        end
+      end
+
+      def inject_attributes_at(hash_offset, opts)
+        return hash_offset if hash_offset.nil? or hash_offset.empty?
+        keys = hash_offset[opts[:using]]
+        entity_name = __entity__(opts[:bucket_name] || opts[:using])
+        values = Looksist.redis_service.send("#{entity_name}_for", keys)
+        alias_method = find_alias(opts, opts[:populate])
+        hash_offset[alias_method] = values
+        hash_offset
+      end
+
+      def update_using_json_path(hash, opts)
+        if hash.is_a?(Hash)
+
+          JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
+            i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless (i.nil? or i.empty?)
+            i
+          end.to_hash.deep_symbolize_keys
+        else
+          inject_attributes_for(hash, opts)
+        end
+      end
+
+      def inject_attributes_for(array_of_hashes, opts)
+        entity_name = __entity__(opts[:bucket_name] || opts[:using])
+        keys = (array_of_hashes.collect { |i| i[opts[:using]] }).compact.uniq
+        values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
+        opts[:populate].is_a?(Array) ? composite_attribute_lookup(array_of_hashes, opts, values) : single_attribute_lookup(array_of_hashes, opts, values)
+      end
+
+      def single_attribute_lookup(array_of_hashes, opts, values)
+        array_of_hashes.each do |elt|
+          alias_method = find_alias(opts[:as], opts[:populate])
+          elt[alias_method] = values[elt[opts[:using]]]
+        end
+      end
+
+      def composite_attribute_lookup(array_of_hashes, opts, values)
+        array_of_hashes.each do |elt|
+          opts[:populate].each do |_key|
+            parsed_key = JSON.parse(values[elt[opts[:using]]]).deep_symbolize_keys
+            alias_method = find_alias(opts[:as], _key)
+            elt[alias_method] = parsed_key[_key]
+          end
+        end
+      end
+
+      def __entity__(entity)
+        entity.to_s.gsub('_id', '')
+      end
 
     end
 
@@ -38,57 +110,6 @@ module Looksist
       base.rules = {}
     end
 
-    private
 
-    def inject_attributes_at(hash_offset, opts)
-      return hash_offset if hash_offset.nil? or hash_offset.empty?
-      keys = hash_offset[opts[:using]]
-      entity_name = __entity__(opts[:bucket_name] || opts[:using])
-      values = Looksist.redis_service.send("#{entity_name}_for", keys)
-      alias_method = find_alias(opts, opts[:populate])
-      hash_offset[alias_method] = values
-      hash_offset
-    end
-
-    def update_using_json_path(hash, opts)
-      if hash.is_a?(Hash)
-        JsonPath.for(hash.with_indifferent_access).gsub!(opts[:at]) do |i|
-          i.is_a?(Array) ? inject_attributes_for(i, opts) : inject_attributes_at(i, opts) unless (i.nil? or i.empty?)
-          i
-        end.to_hash.deep_symbolize_keys
-      else
-        inject_attributes_for(hash, opts)
-      end
-    end
-
-
-    def inject_attributes_for(arry_of_hashes, opts)
-      entity_name = __entity__(opts[:bucket_name] || opts[:using])
-      keys = (arry_of_hashes.collect { |i| i[opts[:using]] }).compact.uniq
-      values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
-      opts[:populate].is_a?(Array) ? composite_attribute_lookup(arry_of_hashes, opts, values) : single_attribute_lookup(arry_of_hashes, opts, values)
-    end
-
-    def single_attribute_lookup(arry_of_hashes, opts, values)
-      arry_of_hashes.each do |elt|
-        alias_method = find_alias(opts, opts[:populate])
-        elt[alias_method] = values[elt[opts[:using]]]
-      end
-    end
-
-    def composite_attribute_lookup(arry_of_hashes, opts, values)
-      arry_of_hashes.each do |elt|
-        opts[:populate].each do |_key|
-          parsed_key = JSON.parse(values[elt[opts[:using]]]).deep_symbolize_keys
-          alias_method = find_alias(opts, _key)
-          elt[alias_method] = parsed_key[_key]
-        end
-      end
-    end
-
-    def find_alias(opts,what)
-      as_map = opts[:as]
-      (as_map and as_map.has_key?(what)) ? as_map[what].to_sym : what
-    end
   end
 end
