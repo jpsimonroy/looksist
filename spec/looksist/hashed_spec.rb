@@ -372,6 +372,25 @@ describe Looksist::Hashed do
       }})
     end
 
+ it 'should work for first level of substitution' do
+      class FirstLevelHash
+        include Looksist
+
+        def metrics
+          {employee_id: 10}
+        end
+
+        inject after: :metrics, using: :employee_id, populate: :employee_name
+      end
+
+      expect(@mock).to receive(:get).with('employees/10').and_return('emp 1')
+
+      expect(FirstLevelHash.new.metrics).to eq({
+              employee_id: 10,
+              employee_name: 'emp 1'
+          })
+    end
+
     it 'should work for array of hashes' do
       class ArrayOfHashes
         include Looksist

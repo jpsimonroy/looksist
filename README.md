@@ -146,6 +146,27 @@ it 'should inject multiple attribute to an existing hash' do
   end
 
 ```
+
+#### Plain Hash
+
+```ruby
+it 'should inject single attribute into a plain hash' do
+      class FirstLevelHash
+        include Looksist
+
+        def metrics
+              {employee_id: 5}
+        end
+
+        inject after: :metrics, using: :employee_id, populate: :employee_name
+      end
+      # Removed mock expectations, look at the tests for actuals
+      expect(FirstLevelHash.new.metrics).to eq({employeed_id: 5, employee_name: 'Emp 5'})
+    end
+  end
+
+```
+
 * Inner Lookups using [JsonPath](https://github.com/joshbuddy/jsonpath)
 
 ```ruby
@@ -181,6 +202,43 @@ it 'should inject multiple attribute to an existing deep hash' do
     }})
   end
 ```
+
+* Inner Lookups using [JsonPath](https://github.com/joshbuddy/jsonpath)
+
+```ruby
+it 'should inject multiple attribute to an existing deep hash for class methods' do
+    class EmployeeHash
+      include Looksist
+
+      def self.metrics
+        {
+            table: {
+                database: {
+                    employee_id: [15, 16],
+                    employer_id: [13, 14]
+                }
+            }
+        }
+      end
+
+      class_inject after: :metrics, at: '$.table.database', 
+                    using: :employee_id, populate: :employee_name
+      
+    end
+
+    # Mocks removed to keep it simple.
+    expect(EmployeeHash.metrics).to eq({table: {
+        database: {
+            employee_id: [15, 16],
+            employer_id: [13, 14],
+            employee_name: ['emp 15', 'emp 16'],
+            employer_name: ['empr 13', 'empr 14']
+        }
+    }})
+  end
+
+```
+
 #### Non Columnar Hashes
 
 ```ruby
