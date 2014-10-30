@@ -221,7 +221,7 @@ it 'should inject multiple attribute to an existing deep hash for class methods'
         }
       end
 
-      class_inject after: :metrics, at: '$.table.database', 
+      inject after: :metrics, at: '$.table.database', 
                     using: :employee_id, populate: :employee_name
       
     end

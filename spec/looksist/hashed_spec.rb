@@ -464,11 +464,30 @@ describe Looksist::Hashed do
           ]
         end
 
-        class_inject after: :help_me, at: '$', using: :a, bucket_name: 'ids', populate: :name
+        inject after: :help_me, at: '$', using: :a, bucket_name: 'ids', populate: :name
       end
 
-      expect(@mock).to receive(:mget).once.with('ids/1').and_return(['RC'])
-      expect(SelfHelp.help_me).to eq([{:a => 1, :name => "RC"}])
+      expect(@mock).to receive(:mget).once.with('ids/1').and_return(['RajiniKanth'])
+      expect(SelfHelp.help_me).to eq([{:a => 1, :name => "RajiniKanth"}])
+    end
+
+    it 'should work for first level hashes in class methods' do
+      class FirstLevelClass
+        include Looksist
+
+        class << self
+          def my_method
+              {
+                  a: 1
+              }
+          end
+        end
+
+        inject after: :my_method, using: :a, bucket_name: 'ids', populate: :name
+      end
+
+      expect(@mock).to receive(:get).once.with('ids/1').and_return('RajiniKanth')
+      expect(FirstLevelClass.my_method).to eq({:a => 1, :name => "RajiniKanth"})
     end
 
   end

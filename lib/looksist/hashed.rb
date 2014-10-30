@@ -15,42 +15,42 @@ module Looksist
         (@rules[after] ||= []) << opts
 
         unless @rules[after].length > 1
-          define_method("#{after}_with_inject") do |*args|
-            hash = send("#{after}_without_inject".to_sym, *args)
-            self.class.instance_variable_get(:@rules)[after].each do |opts|
-              if opts[:at].nil? or opts[:at].is_a? String
-                hash = self.class.update_using_json_path(hash, opts)
-              else
-                self.class.inject_attributes_at(hash[opts[:at]], opts)
-              end
-            end
-            hash
+          if self.singleton_methods.include?(opts[:after])
+            inject_class_methods(after, opts)
+          else
+            inject_instance_methods(after, opts)
           end
-          alias_method_chain after, :inject
         end
       end
 
-      def class_inject(opts)
-        raise 'Incorrect usage' unless [:after, :using, :populate].all? { |e| opts.keys.include? e }
-
-        after = opts[:after]
-        @rules ||= {}
-        (@rules[after] ||= []) << opts
-
-        unless @rules[after].length > 1
-          define_singleton_method("#{after}_with_inject") do |*args|
-            hash = send("#{after}_without_inject".to_sym, *args)
-            @rules[after].each do |opts|
-              if opts[:at].nil? or opts[:at].is_a? String
-                hash = update_using_json_path(hash, opts)
-              else
-                inject_attributes_at(hash[opts[:at]], opts)
-              end
+      def inject_instance_methods(after, opts)
+        define_method("#{after}_with_inject") do |*args|
+          hash = send("#{after}_without_inject".to_sym, *args)
+          self.class.instance_variable_get(:@rules)[after].each do |opts|
+            if opts[:at].nil? or opts[:at].is_a? String
+              hash = self.class.update_using_json_path(hash, opts)
+            else
+              self.class.inject_attributes_at(hash[opts[:at]], opts)
             end
-            hash
           end
-          self.singleton_class.send(:alias_method_chain, after, :inject)
+          hash
         end
+        alias_method_chain after, :inject
+      end
+
+      def inject_class_methods(after, opts)
+        define_singleton_method("#{after}_with_inject") do |*args|
+          hash = send("#{after}_without_inject".to_sym, *args)
+          @rules[after].each do |opts|
+            if opts[:at].nil? or opts[:at].is_a? String
+              hash = update_using_json_path(hash, opts)
+            else
+              inject_attributes_at(hash[opts[:at]], opts)
+            end
+          end
+          hash
+        end
+        self.singleton_class.send(:alias_method_chain, after, :inject)
       end
 
       def inject_attributes_at(hash_offset, opts)
@@ -71,7 +71,7 @@ module Looksist
               i
             end
           else
-             inject_attributes_at(hash, opts)
+            inject_attributes_at(hash, opts)
 
           end.to_hash.deep_symbolize_keys
         else
