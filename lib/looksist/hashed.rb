@@ -15,15 +15,15 @@ module Looksist
         (@rules[after] ||= []) << opts
 
         unless @rules[after].length > 1
-          if self.singleton_methods.include?(opts[:after])
-            inject_class_methods(after, opts)
+          if self.singleton_methods.include?(after)
+            inject_class_methods(after)
           else
-            inject_instance_methods(after, opts)
+            inject_instance_methods(after)
           end
         end
       end
 
-      def inject_instance_methods(after, opts)
+      def inject_instance_methods(after)
         define_method("#{after}_with_inject") do |*args|
           hash = send("#{after}_without_inject".to_sym, *args)
           self.class.instance_variable_get(:@rules)[after].each do |opts|
@@ -38,7 +38,7 @@ module Looksist
         alias_method_chain after, :inject
       end
 
-      def inject_class_methods(after, opts)
+      def inject_class_methods(after)
         define_singleton_method("#{after}_with_inject") do |*args|
           hash = send("#{after}_without_inject".to_sym, *args)
           @rules[after].each do |opts|
