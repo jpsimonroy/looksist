@@ -58,9 +58,17 @@ module Looksist
         keys = hash_offset[opts[:using]]
         entity_name = __entity__(opts[:bucket_name] || opts[:using])
         values = Looksist.redis_service.send("#{entity_name}_for", keys)
-        alias_method = find_alias(opts, opts[:populate])
-        hash_offset[alias_method] = values
-        hash_offset
+        if opts[:populate].is_a? Array
+          opts[:populate].each do |elt|
+            value_hash = values.each_with_object([]) { |i, acc| acc << JSON.parse(i).deep_symbolize_keys[elt] }
+            alias_method = find_alias(opts, elt)
+            hash_offset[alias_method] = value_hash
+          end
+        else
+          alias_method = find_alias(opts, opts[:populate])
+          hash_offset[alias_method] = values
+          hash_offset
+        end
       end
 
       def update_using_json_path(hash, opts)

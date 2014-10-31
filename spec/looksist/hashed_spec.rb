@@ -490,5 +490,31 @@ describe Looksist::Hashed do
       expect(FirstLevelClass.my_method).to eq({:a => 1, :name => "RajiniKanth"})
     end
 
+    it 'should be capable to deep lookup and inject multiple attributes' do
+      class DeepLookUpMultiple
+        include Looksist
+
+        def self.metrics
+          {
+              table: {
+              menu:{
+                item_id: [1,2]
+              }
+            }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic]
+      end
+
+      js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
+      js2 = {name: 'Rice pudding', mnemonic: 'Pongal'}.to_json
+      jsons = [js1, js2]
+
+      expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(jsons)
+
+      expect(DeepLookUpMultiple.metrics).to eq({:table => {:menu=>{:item_id=>[1, 2], :name=>["Rice Cake", "Rice pudding"], :mnemonic=>["Idly", "Pongal"]}}})
+    end
+
   end
 end
