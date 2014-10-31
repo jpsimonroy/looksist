@@ -61,11 +61,7 @@ module Looksist
         if opts[:populate].is_a? Array
           opts[:populate].each do |elt|
             value_hash = values.each_with_object([]) do |i, acc|
-              if i.nil?
-                acc << nil
-              else
-                acc << JSON.parse(i).deep_symbolize_keys[elt]
-              end
+              acc << JSON.parse(i || '{}').deep_symbolize_keys[elt]
             end
             alias_method = find_alias(opts[:as], elt)
             hash_offset[alias_method] = value_hash

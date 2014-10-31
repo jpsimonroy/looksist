@@ -372,7 +372,7 @@ describe Looksist::Hashed do
       }})
     end
 
- it 'should work for first level of substitution' do
+    it 'should work for first level of substitution' do
       class FirstLevelHash
         include Looksist
 
@@ -386,9 +386,9 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:get).with('employees/10').and_return('emp 1')
 
       expect(FirstLevelHash.new.metrics).to eq({
-              employee_id: 10,
-              employee_name: 'emp 1'
-          })
+                                                   employee_id: 10,
+                                                   employee_name: 'emp 1'
+                                               })
     end
 
     it 'should work for array of hashes' do
@@ -447,8 +447,8 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:mget).once.with(*%w(heros/1 heros/2)).and_return(jsons)
 
       expect(HashWithMultipleAttributes.new.metrics).to eq(
-                                                            [{:hero_id => 1, :hero_name => "Rajini", :hero_mnemonic => "SuperStart"},
-                                                             {:hero_id => 2, :hero_name => "Kamal", :hero_mnemonic => "Ulaganayagan"}]
+                                                            [{:hero_id => 1, :hero_name => 'Rajini', :hero_mnemonic => 'SuperStart'},
+                                                             {:hero_id => 2, :hero_name => 'Kamal', :hero_mnemonic => 'Ulaganayagan'}]
                                                         )
     end
 
@@ -468,7 +468,7 @@ describe Looksist::Hashed do
       end
 
       expect(@mock).to receive(:mget).once.with('ids/1').and_return(['RajiniKanth'])
-      expect(SelfHelp.help_me).to eq([{:a => 1, :name => "RajiniKanth"}])
+      expect(SelfHelp.help_me).to eq([{:a => 1, :name => 'RajiniKanth'}])
     end
 
     it 'should work for first level hashes in class methods' do
@@ -477,9 +477,9 @@ describe Looksist::Hashed do
 
         class << self
           def my_method
-              {
-                  a: 1
-              }
+            {
+                a: 1
+            }
           end
         end
 
@@ -487,7 +487,7 @@ describe Looksist::Hashed do
       end
 
       expect(@mock).to receive(:get).once.with('ids/1').and_return('RajiniKanth')
-      expect(FirstLevelClass.my_method).to eq({:a => 1, :name => "RajiniKanth"})
+      expect(FirstLevelClass.my_method).to eq({:a => 1, :name => 'RajiniKanth'})
     end
 
     it 'should be capable to deep lookup and inject multiple attributes' do
@@ -497,14 +497,14 @@ describe Looksist::Hashed do
         def self.metrics
           {
               table: {
-              menu:{
-                item_id: [1,2]
+                  menu: {
+                      item_id: [1, 2]
+                  }
               }
-            }
           }
         end
 
-        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name:'item_name', mnemonic:'item_mnemonic'}
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name: 'item_name', mnemonic: 'item_mnemonic'}
       end
 
       js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
@@ -513,7 +513,7 @@ describe Looksist::Hashed do
 
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(jsons)
 
-      expect(DeepLookUpMultiple.metrics).to eq({:table => {:menu=>{:item_id=>[1, 2], :item_name=>["Rice Cake", "Rice pudding"], :item_mnemonic=>["Idly", "Pongal"]}}})
+      expect(DeepLookUpMultiple.metrics).to eq({:table => {:menu => {:item_id => [1, 2], :item_name => ['Rice Cake', 'Rice pudding'], :item_mnemonic => ['Idly', 'Pongal']}}})
     end
 
     it 'should be capable to deep lookup and inject multiple attributes ignoring nil values' do
@@ -523,14 +523,14 @@ describe Looksist::Hashed do
         def self.metrics
           {
               table: {
-              menu:{
-                item_id: [1,2]
+                  menu: {
+                      item_id: [1, 2]
+                  }
               }
-            }
           }
         end
 
-        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name:'item_name', mnemonic:'item_mnemonic'}
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name: 'item_name', mnemonic: 'item_mnemonic'}
       end
 
       js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
@@ -538,7 +538,7 @@ describe Looksist::Hashed do
 
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(jsons)
 
-      expect(DeepLookUpMultipleIngnorNil.metrics).to eq({:table => {:menu=>{:item_id=>[1, 2], :item_name=>["Rice Cake", nil], :item_mnemonic=>["Idly", nil]}}})
+      expect(DeepLookUpMultipleIngnorNil.metrics).to eq({:table => {:menu => {:item_id => [1, 2], :item_name => ['Rice Cake', nil], :item_mnemonic => ['Idly', nil]}}})
     end
 
     it 'should be capable to deep lookup and inject multiple attributes in same order' do
@@ -548,25 +548,52 @@ describe Looksist::Hashed do
         def self.metrics
           {
               table: {
-              menu:{
-                item_id: [1,2,2,1,1,2,3,3,2,1]
+                  menu: {
+                      item_id: [1, 2, 2, 1, 1, 2, 3, 3, 2, 1]
+                  }
               }
-            }
           }
         end
 
-        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name:'item_name', mnemonic:'item_mnemonic'}
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name: 'item_name', mnemonic: 'item_mnemonic'}
+      end
+
+      class ColumnarWithEmpty
+        include Looksist
+
+        def self.metrics
+          {
+              table: {
+                  menu: {
+                      item_id: []
+                  }
+              }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name: 'item_name', mnemonic: 'item_mnemonic'}
       end
 
       js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
       js2 = {name: 'Pan Cake', mnemonic: 'Dosa'}.to_json
-      jsons = [js1,  js2, nil]
+      jsons = [js1, js2, nil]
 
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2 items/3)).and_return(jsons)
 
-      expect(ColumnarWithNil.metrics).to eq({:table => {:menu=>{:item_id=>[1,2,2,1,1,2,3,3,2,1], :item_name=>["Rice Cake", "Pan Cake", "Pan Cake", "Rice Cake", "Rice Cake", "Pan Cake", nil, nil, "Pan Cake", "Rice Cake"],
-                                                                            :item_mnemonic=>["Idly", "Dosa","Dosa","Idly","Idly","Dosa", nil,nil, "Dosa", "Idly"  ]}}})
-    end
+      expect(ColumnarWithNil.metrics).to eq({:table => {:menu => {
+          :item_id => [1, 2, 2, 1, 1, 2, 3, 3, 2, 1],
+          :item_name => ['Rice Cake', 'Pan Cake', 'Pan Cake', 'Rice Cake', 'Rice Cake', 'Pan Cake', nil, nil, 'Pan Cake', 'Rice Cake'],
+          :item_mnemonic => ['Idly', 'Dosa', 'Dosa', 'Idly', 'Idly', 'Dosa', nil, nil, 'Dosa', 'Idly']}}})
 
+      expect(ColumnarWithEmpty.metrics).to eq({
+                                                  table: {
+                                                      menu: {
+                                                          item_id: [],
+                                                          item_name: [],
+                                                          item_mnemonic: []
+                                                      }
+                                                  }
+                                              })
+    end
   end
 end
