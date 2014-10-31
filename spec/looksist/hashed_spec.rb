@@ -504,7 +504,7 @@ describe Looksist::Hashed do
           }
         end
 
-        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic]
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name:'item_name', mnemonic:'item_mnemonic'}
       end
 
       js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
@@ -513,7 +513,59 @@ describe Looksist::Hashed do
 
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(jsons)
 
-      expect(DeepLookUpMultiple.metrics).to eq({:table => {:menu=>{:item_id=>[1, 2], :name=>["Rice Cake", "Rice pudding"], :mnemonic=>["Idly", "Pongal"]}}})
+      expect(DeepLookUpMultiple.metrics).to eq({:table => {:menu=>{:item_id=>[1, 2], :item_name=>["Rice Cake", "Rice pudding"], :item_mnemonic=>["Idly", "Pongal"]}}})
+    end
+
+    it 'should be capable to deep lookup and inject multiple attributes ignoring nil values' do
+      class DeepLookUpMultipleIngnorNil
+        include Looksist
+
+        def self.metrics
+          {
+              table: {
+              menu:{
+                item_id: [1,2]
+              }
+            }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name:'item_name', mnemonic:'item_mnemonic'}
+      end
+
+      js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
+      jsons = [js1, nil]
+
+      expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(jsons)
+
+      expect(DeepLookUpMultipleIngnorNil.metrics).to eq({:table => {:menu=>{:item_id=>[1, 2], :item_name=>["Rice Cake", nil], :item_mnemonic=>["Idly", nil]}}})
+    end
+
+    it 'should be capable to deep lookup and inject multiple attributes in same order' do
+      class ColumnarWithNil
+        include Looksist
+
+        def self.metrics
+          {
+              table: {
+              menu:{
+                item_id: [1,2,2,1,1,2,3,3,2,1]
+              }
+            }
+          }
+        end
+
+        inject after: :metrics, at: '$.table.menu', using: :item_id, populate: [:name, :mnemonic], as: {name:'item_name', mnemonic:'item_mnemonic'}
+      end
+
+      js1 = {name: 'Rice Cake', mnemonic: 'Idly'}.to_json
+      js2 = {name: 'Pan Cake', mnemonic: 'Dosa'}.to_json
+      jsons = [js1,  js2, nil]
+
+      expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2 items/3)).and_return(jsons)
+
+      expect(ColumnarWithNil.metrics).to eq({:table => {:menu=>{:item_id=>[1,2,2,1,1,2,3,3,2,1], :item_name=>["Rice Cake", "Pan Cake", "Pan Cake", "Rice Cake", "Rice Cake", "Pan Cake", nil, nil, "Pan Cake", "Rice Cake"],
+                                                                            :item_mnemonic=>["Idly", "Dosa","Dosa","Idly","Idly","Dosa", nil,nil, "Dosa", "Idly"  ]}}})
     end
 
   end
