@@ -12,5 +12,5 @@ class ArrayOfHash
     ]
   end
 
-  inject after: :menu, at: '$', using: :item_id, populate: :item_name
+  inject after: :menu, using: :item_id, populate: :item_name
 end

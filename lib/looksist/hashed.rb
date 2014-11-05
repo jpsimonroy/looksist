@@ -85,7 +85,7 @@ module Looksist
 
           end.to_hash.deep_symbolize_keys
         else
-          inject_attributes_for(hash, opts)
+          inject_attributes_for_array(hash, opts)
         end
       end
 
@@ -96,10 +96,42 @@ module Looksist
         opts[:populate].is_a?(Array) ? composite_attribute_lookup(array_of_hashes, opts, values) : single_attribute_lookup(array_of_hashes, opts, values)
       end
 
+      def inject_attributes_for_array(array_of_hashes, opts)
+        entity_name = __entity__(opts[:bucket_name] || opts[:using])
+        modified_array = if opts[:at].nil?
+                array_of_hashes.map(&:values)
+              else
+                json_path = JsonPath.new("#{opts[:at]}..#{opts[:using]}")
+                json_path.on(array_of_hashes.to_json)
+              end
+        keys = modified_array.flatten.compact.uniq
+        values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
+        opts[:populate].is_a?(Array) ? composite_attribute_lookup(array_of_hashes, opts, values) : single_attribute_lookup_for_array(array_of_hashes, opts, values)
+      end
+
       def single_attribute_lookup(array_of_hashes, opts, values)
         array_of_hashes.each do |elt|
           alias_method = find_alias(opts[:as], opts[:populate])
           elt[alias_method] = values[elt[opts[:using]]]
+        end
+      end
+
+      def single_attribute_lookup_for_array(array_of_hashes, opts, values)
+        array_of_hashes.collect do |elt|
+          alias_method = find_alias(opts[:as], opts[:populate])
+          if opts[:at].present?
+            JsonPath.for(elt.with_indifferent_access).gsub!(opts[:at]) do |node|
+              if node.is_a? Array
+                node.each { |x| x[alias_method] = values[x.with_indifferent_access[opts[:using]]] }
+              else
+                node[alias_method] = values[node.with_indifferent_access[opts[:using]]]
+              end
+              node
+            end.to_hash.deep_symbolize_keys
+          else
+            elt[alias_method] = values[elt[opts[:using]]]
+            elt
+          end
         end
       end
 

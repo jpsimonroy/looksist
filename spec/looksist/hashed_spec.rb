@@ -406,7 +406,7 @@ describe Looksist::Hashed do
           ]
         end
 
-        inject after: :metrics, at: '$', using: :item_id, populate: :item_name, as: {item_name: 'dish_name'}
+        inject after: :metrics, using: :item_id, populate: :item_name, as: {item_name: 'dish_name'}
       end
 
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2)).and_return(%w(Idly Pongal))
@@ -464,7 +464,7 @@ describe Looksist::Hashed do
           ]
         end
 
-        inject after: :help_me, at: '$', using: :a, bucket_name: 'ids', populate: :name
+        inject after: :help_me, using: :a, bucket_name: 'ids', populate: :name
       end
 
       expect(@mock).to receive(:mget).once.with('ids/1').and_return(['RajiniKanth'])
@@ -594,6 +594,23 @@ describe Looksist::Hashed do
                                                       }
                                                   }
                                               })
+    end
+
+    it'should work for nested injection for array of hash' do
+      class DeepLookUpAtArrayOfHash
+        include Looksist
+        def self.articles
+          [{
+              articles:[{article_id: 1}, {article_id: 2}]
+           }]
+        end
+        inject after: :articles, at:'$..articles', using: :article_id, populate: :name
+      end
+
+      expect(@mock).to receive(:mget).once.with(*%w(articles/1 articles/2)).and_return(['a','b'])
+
+      expect(DeepLookUpAtArrayOfHash.articles).to eq([{articles:[{article_id: 1, name:'a'}, {article_id:2, name:'b'}]}])
+
     end
   end
 end
