@@ -439,7 +439,7 @@ describe Looksist::Hashed do
           ]
         end
 
-        inject after: :metrics, at: '$', using: :hero_id, populate: [:name, :mnemonic], as: {name: 'hero_name', mnemonic: 'hero_mnemonic'}
+        inject after: :metrics, using: :hero_id, populate: [:name, :mnemonic], as: {name: 'hero_name', mnemonic: 'hero_mnemonic'}
       end
       js1 = {name: 'Rajini', mnemonic: 'SuperStart'}.to_json
       js2 = {name: 'Kamal', mnemonic: 'Ulaganayagan'}.to_json
@@ -600,16 +600,34 @@ describe Looksist::Hashed do
       class DeepLookUpAtArrayOfHash
         include Looksist
         def self.articles
-          [{
-              articles:[{article_id: 1}, {article_id: 2}]
-           }]
+          [{:articles => [{:article_id => 1, :sub_category_id => 8001, :supplier_id => 158782, :sub_family_id => 18001}]}]
         end
-        inject after: :articles, at:'$..articles', using: :article_id, populate: :name
+        inject after: :articles, at:'$..articles', using: :article_id, populate: :name, as: {name: 'description'}
+        inject after: :articles, at:'$..articles', using: :sub_category_id, populate: :sub_category_name
       end
 
-      expect(@mock).to receive(:mget).once.with(*%w(articles/1 articles/2)).and_return(['a','b'])
+      expect(@mock).to receive(:mget).once.with(*%w(articles/1)).and_return(['A'])
+      expect(@mock).to receive(:mget).once.with(*%w(sub_categories/8001)).and_return(['B'])
 
-      expect(DeepLookUpAtArrayOfHash.articles).to eq([{articles:[{article_id: 1, name:'a'}, {article_id:2, name:'b'}]}])
+      expect(DeepLookUpAtArrayOfHash.articles).to eq([{:articles => [{:article_id => 1, :description=> 'A', :sub_category_id => 8001,
+                                                                      :sub_category_name => 'B',
+                                                                      :supplier_id => 158782, :sub_family_id => 18001}]}])
+
+    end
+
+    it'should work for nested injection for array of hash for multiple attributes' do
+      class DeepLookUpAtArrayOfHashMultiple
+        include Looksist
+        def self.articles
+          [{:articles => [{:article_id => 1, :sub_category_id => 8001, :supplier_id => 158782, :sub_family_id => 18001}]}]
+        end
+        inject after: :articles, at:'$..articles', using: :article_id, populate: [:name,:weight]
+      end
+
+      expect(@mock).to receive(:mget).once.with(*%w(articles/1)).and_return([{name:'A', weight:1}.to_json])
+
+      expect(DeepLookUpAtArrayOfHashMultiple.articles).to eq([{:articles => [{:article_id => 1, :name=> 'A',:weight=> 1, :sub_category_id => 8001,
+                                                                      :supplier_id => 158782, :sub_family_id => 18001}]}])
 
     end
   end

@@ -99,11 +99,11 @@ module Looksist
       def inject_attributes_for_array(array_of_hashes, opts)
         entity_name = __entity__(opts[:bucket_name] || opts[:using])
         modified_array = if opts[:at].nil?
-                array_of_hashes.map(&:values)
-              else
-                json_path = JsonPath.new("#{opts[:at]}..#{opts[:using]}")
-                json_path.on(array_of_hashes.to_json)
-              end
+                           array_of_hashes.map(&:values)
+                         else
+                           json_path = JsonPath.new("#{opts[:at]}..#{opts[:using]}")
+                           json_path.on(array_of_hashes.to_json)
+                         end
         keys = modified_array.flatten.compact.uniq
         values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
         opts[:populate].is_a?(Array) ? composite_attribute_lookup(array_of_hashes, opts, values) : single_attribute_lookup_for_array(array_of_hashes, opts, values)
@@ -136,11 +136,33 @@ module Looksist
       end
 
       def composite_attribute_lookup(array_of_hashes, opts, values)
-        array_of_hashes.each do |elt|
-          opts[:populate].each do |_key|
+        array_of_hashes.collect do |elt|
+          if opts[:at].present?
+            JsonPath.for(elt.with_indifferent_access).gsub!(opts[:at]) do |node|
+              if node.is_a? Array
+                node.collect do |x|
+                  opts[:populate].collect do |_key|
+                    alias_method = find_alias(opts[:as], _key)
+                    parsed_key = JSON.parse(values[x.with_indifferent_access[opts[:using]]]).deep_symbolize_keys
+                    x[alias_method] = parsed_key[_key]
+                  end
+                end
+              else
+                parsed_key = JSON.parse(values[node.with_indifferent_access[opts[:using]]]).deep_symbolize_keys
+                opts[:populate].collect do |_key|
+                  alias_method = find_alias(opts[:as], _key)
+                  node[alias_method] = parsed_key[_key]
+                end
+              end
+              node
+            end.to_hash.deep_symbolize_keys
+          else
             parsed_key = JSON.parse(values[elt[opts[:using]]]).deep_symbolize_keys
-            alias_method = find_alias(opts[:as], _key)
-            elt[alias_method] = parsed_key[_key]
+            opts[:populate].collect do |_key|
+              alias_method = find_alias(opts[:as], _key)
+              elt[alias_method] = parsed_key[_key]
+            end
+            elt
           end
         end
       end
