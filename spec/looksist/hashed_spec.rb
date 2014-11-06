@@ -398,10 +398,12 @@ describe Looksist::Hashed do
         def metrics
           [
               {
-                  item_id: 1
+                  item_id: 1,
+                  item_preference:'Low'
               },
               {
-                  item_id: 2
+                  item_id: 2,
+                  item_preference:'High'
               }
           ]
         end
@@ -414,11 +416,13 @@ describe Looksist::Hashed do
       expect(ArrayOfHashes.new.metrics).to eq(
                                                [{
                                                     item_id: 1,
-                                                    dish_name: 'Idly'
+                                                    dish_name: 'Idly',
+                                                    item_preference:'Low'
                                                 },
                                                 {
                                                     item_id: 2,
-                                                    dish_name: 'Pongal'
+                                                    dish_name: 'Pongal',
+                                                  item_preference:'High'
                                                 }]
                                            )
 
