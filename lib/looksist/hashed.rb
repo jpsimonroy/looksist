@@ -108,14 +108,18 @@ module Looksist
           modified_array = if at.nil?
                              array_of_hashes.map(&:values)
                            else
-                             json_path = JsonPath.new("#{at}..#{opt[:using]}")
-                             json_path.on(array_of_hashes.to_json)
+                             extract_values(array_of_hashes, opt[:using])
                            end
           keys = modified_array.flatten.compact.uniq
           values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
           acc[opt[:using]] = values
         end
         smart_lookup(array_of_hashes, opts, all_values, at)
+      end
+
+      def extract_values(array_of_hashes, using)
+        hash = array_of_hashes.is_a?(Array) ? {:root => array_of_hashes} : array_of_hashes
+        hash.find_all_values_for(using)
       end
 
       def smart_lookup(array_of_hashes, opts, all_values, at)

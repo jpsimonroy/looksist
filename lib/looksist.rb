@@ -1,4 +1,5 @@
 require 'looksist/version'
+require 'looksist/hash'
 require 'jsonpath'
 require 'looksist/common'
 require 'looksist/core'
