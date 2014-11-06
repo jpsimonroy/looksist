@@ -105,11 +105,7 @@ module Looksist
       def inject_attributes_for_array(array_of_hashes, at, opts)
         all_values = opts.each_with_object({}) do |opt, acc|
           entity_name = __entity__(opt[:bucket_name] || opt[:using])
-          modified_array = if at.nil?
-                             array_of_hashes.map(&:values)
-                           else
-                             extract_values(array_of_hashes, opt[:using])
-                           end
+          modified_array = extract_values(array_of_hashes, opt[:using])
           keys = modified_array.flatten.compact.uniq
           values = Hash[keys.zip(Looksist.redis_service.send("#{entity_name}_for", keys))]
           acc[opt[:using]] = values
