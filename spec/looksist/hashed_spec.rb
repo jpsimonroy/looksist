@@ -151,11 +151,11 @@ describe Looksist::Hashed do
         expect(@mock).to receive(:mget).with(*%w(employees/10 employees/20)).and_return(['emp 1', 'emp 2'])
 
         expect(DeepHash.new.metrics).to eq({table: {
-            inner_table: {
-                employee_id: [10, 20],
-                employee_name: ['emp 1', 'emp 2']
-            }
-        }})
+                                               inner_table: {
+                                                   employee_id: [10, 20],
+                                                   employee_name: ['emp 1', 'emp 2']
+                                               }
+                                           }})
       end
 
       it 'should inject single attribute to an existing hash' do
@@ -176,9 +176,33 @@ describe Looksist::Hashed do
         expect(@mock).to receive(:mget).with(*%w(employees/1 employees/2)).and_return(['emp 1', 'emp 2'])
 
         expect(HashService1.new.metrics).to eq({table: {
-            employee_id: [1, 2],
-            employee_name: ['emp 1', 'emp 2']
-        }})
+                                                   employee_id: [1, 2],
+                                                   employee_name: ['emp 1', 'emp 2']
+                                               }})
+      end
+
+      it 'should inject single attribute to an existing hash a without array' do
+        class HashServiceMulti
+          include Looksist
+
+          def metrics
+            {
+                table: {
+                    employee_id: 1
+                }
+            }
+          end
+
+          inject after: :metrics, at: :table, using: :employee_id, populate: [:employee_name, :employer_gender]
+        end
+
+        expect(@mock).to receive(:get).with('employees/1').and_return({employee_name: 'emp 1', employer_gender: 'F'}.to_json)
+
+        expect(HashServiceMulti.new.metrics).to eq({table: {
+                                                       employee_id: 1,
+                                                       employee_name: 'emp 1',
+                                                       employer_gender: 'F'
+                                                   }})
       end
 
       it 'should inject multiple attribute to an existing hash' do
@@ -203,11 +227,11 @@ describe Looksist::Hashed do
         expect(@mock).to receive(:mget).with(*%w(employers/3 employers/4)).and_return(['empr 3', 'empr 4'])
 
         expect(HashService.new.metrics).to eq({table: {
-            employee_id: [5, 6],
-            employer_id: [3, 4],
-            employee_name: ['emp 5', 'emp 6'],
-            employer_name: ['empr 3', 'empr 4']
-        }})
+                                                  employee_id: [5, 6],
+                                                  employer_id: [3, 4],
+                                                  employee_name: ['emp 5', 'emp 6'],
+                                                  employer_name: ['empr 3', 'empr 4']
+                                              }})
       end
     end
 
@@ -235,13 +259,13 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:mget).with(*%w(employers/13 employers/14)).and_return(['empr 13', 'empr 14'])
 
       expect(EmployeeHash.new.metrics).to eq({table: {
-          database: {
-              employee_id: [15, 16],
-              employer_id: [13, 14],
-              employee_name: ['emp 15', 'emp 16'],
-              employer_name: ['empr 13', 'empr 14']
-          }
-      }})
+                                                 database: {
+                                                     employee_id: [15, 16],
+                                                     employer_id: [13, 14],
+                                                     employee_name: ['emp 15', 'emp 16'],
+                                                     employer_name: ['empr 13', 'empr 14']
+                                                 }
+                                             }})
     end
 
     context 'handle no data' do
@@ -324,14 +348,14 @@ describe Looksist::Hashed do
 
         hash_service_super = HashServiceSuper.new
         expect(hash_service_super.shrinkage).to eq({table: {
-            shrink_id: [1, 2],
-            shrink_name: ['shrink 1', 'shrink 2']
-        }})
+                                                       shrink_id: [1, 2],
+                                                       shrink_name: ['shrink 1', 'shrink 2']
+                                                   }})
 
         expect(hash_service_super.stock).to eq({table: {
-            dc_id: [7, 8],
-            dc_name: ['dc 7', 'dc 8']
-        }})
+                                                   dc_id: [7, 8],
+                                                   dc_name: ['dc 7', 'dc 8']
+                                               }})
       end
     end
   end
@@ -365,11 +389,11 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:mget).with(*%w(employees/10)).and_return(['emp 1'])
 
       expect(NoL2DeepHash.new.metrics).to eq({table: {
-          inner_table: {
-              employee_id: [10, 10],
-              employee_name: ['emp 1', 'emp 1']
-          }
-      }})
+                                                 inner_table: {
+                                                     employee_id: [10, 10],
+                                                     employee_name: ['emp 1', 'emp 1']
+                                                 }
+                                             }})
     end
 
     it 'should work for first level of substitution' do
@@ -399,11 +423,11 @@ describe Looksist::Hashed do
           [
               {
                   item_id: 1,
-                  item_preference:'Low'
+                  item_preference: 'Low'
               },
               {
                   item_id: 2,
-                  item_preference:'High'
+                  item_preference: 'High'
               }
           ]
         end
@@ -417,12 +441,12 @@ describe Looksist::Hashed do
                                                [{
                                                     item_id: 1,
                                                     dish_name: 'Idly',
-                                                    item_preference:'Low'
+                                                    item_preference: 'Low'
                                                 },
                                                 {
                                                     item_id: 2,
                                                     dish_name: 'Pongal',
-                                                  item_preference:'High'
+                                                    item_preference: 'High'
                                                 }]
                                            )
 
@@ -585,9 +609,9 @@ describe Looksist::Hashed do
       expect(@mock).to receive(:mget).once.with(*%w(items/1 items/2 items/3)).and_return(jsons)
 
       expect(ColumnarWithNil.metrics).to eq({:table => {:menu => {
-          :item_id => [1, 2, 2, 1, 1, 2, 3, 3, 2, 1],
-          :item_name => ['Rice Cake', 'Pan Cake', 'Pan Cake', 'Rice Cake', 'Rice Cake', 'Pan Cake', nil, nil, 'Pan Cake', 'Rice Cake'],
-          :item_mnemonic => ['Idly', 'Dosa', 'Dosa', 'Idly', 'Idly', 'Dosa', nil, nil, 'Dosa', 'Idly']}}})
+                                                :item_id => [1, 2, 2, 1, 1, 2, 3, 3, 2, 1],
+                                                :item_name => ['Rice Cake', 'Pan Cake', 'Pan Cake', 'Rice Cake', 'Rice Cake', 'Pan Cake', nil, nil, 'Pan Cake', 'Rice Cake'],
+                                                :item_mnemonic => ['Idly', 'Dosa', 'Dosa', 'Idly', 'Idly', 'Dosa', nil, nil, 'Dosa', 'Idly']}}})
 
       expect(ColumnarWithEmpty.metrics).to eq({
                                                   table: {
@@ -600,38 +624,42 @@ describe Looksist::Hashed do
                                               })
     end
 
-    it'should work for nested injection for array of hash' do
+    it 'should work for nested injection for array of hash' do
       class DeepLookUpAtArrayOfHash
         include Looksist
+
         def self.articles
           [{:articles => [{:article_id => 1, :sub_category_id => 8001, :supplier_id => 158782, :sub_family_id => 18001}]}]
         end
-        inject after: :articles, at:'$..articles', using: :article_id, populate: :name, as: {name: 'description'}
-        inject after: :articles, at:'$..articles', using: :sub_category_id, populate: :sub_category_name
+
+        inject after: :articles, at: '$..articles', using: :article_id, populate: :name, as: {name: 'description'}
+        inject after: :articles, at: '$..articles', using: :sub_category_id, populate: :sub_category_name
       end
 
       expect(@mock).to receive(:mget).once.with(*%w(articles/1)).and_return(['A'])
       expect(@mock).to receive(:mget).once.with(*%w(sub_categories/8001)).and_return(['B'])
 
-      expect(DeepLookUpAtArrayOfHash.articles).to eq([{:articles => [{:article_id => 1, :description=> 'A', :sub_category_id => 8001,
+      expect(DeepLookUpAtArrayOfHash.articles).to eq([{:articles => [{:article_id => 1, :description => 'A', :sub_category_id => 8001,
                                                                       :sub_category_name => 'B',
                                                                       :supplier_id => 158782, :sub_family_id => 18001}]}])
 
     end
 
-    it'should work for nested injection for array of hash for multiple attributes' do
+    it 'should work for nested injection for array of hash for multiple attributes' do
       class DeepLookUpAtArrayOfHashMultiple
         include Looksist
+
         def self.articles
           [{:articles => [{:article_id => 1, :sub_category_id => 8001, :supplier_id => 158782, :sub_family_id => 18001}]}]
         end
-        inject after: :articles, at:'$..articles', using: :article_id, populate: [:name,:weight]
+
+        inject after: :articles, at: '$..articles', using: :article_id, populate: [:name, :weight]
       end
 
-      expect(@mock).to receive(:mget).once.with(*%w(articles/1)).and_return([{name:'A', weight:1}.to_json])
+      expect(@mock).to receive(:mget).once.with(*%w(articles/1)).and_return([{name: 'A', weight: 1}.to_json])
 
-      expect(DeepLookUpAtArrayOfHashMultiple.articles).to eq([{:articles => [{:article_id => 1, :name=> 'A',:weight=> 1, :sub_category_id => 8001,
-                                                                      :supplier_id => 158782, :sub_family_id => 18001}]}])
+      expect(DeepLookUpAtArrayOfHashMultiple.articles).to eq([{:articles => [{:article_id => 1, :name => 'A', :weight => 1, :sub_category_id => 8001,
+                                                                              :supplier_id => 158782, :sub_family_id => 18001}]}])
 
     end
   end

@@ -63,8 +63,12 @@ module Looksist
           values = Looksist.redis_service.send("#{entity_name}_for", keys)
           if opt[:populate].is_a? Array
             opt[:populate].each do |elt|
-              value_hash = values.each_with_object([]) do |i, acc|
-                acc << JSON.parse(i || '{}').deep_symbolize_keys[elt]
+              if values.is_a?(Array)
+                value_hash = values.each_with_object([]) do |i, acc|
+                  acc << JSON.parse(i || '{}').deep_symbolize_keys[elt]
+                end
+              else
+                value_hash = JSON.parse(values || '{}').deep_symbolize_keys[elt]
               end
               alias_method = find_alias(opt[:as], elt)
               hash_offset[alias_method] = value_hash
