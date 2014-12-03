@@ -480,6 +480,33 @@ describe Looksist::Hashed do
                                                         )
     end
 
+    it 'should work for multiple attributes with one returning nil' do
+      class HashWithMultipleAttributesWithNil
+        include Looksist
+
+        def metrics
+          [
+              {
+                  hero_id: 1
+              },
+              {
+                  hero_id: 2
+              }
+          ]
+        end
+
+        inject after: :metrics, using: :hero_id, populate: [:name, :mnemonic], as: {name: 'hero_name', mnemonic: 'hero_mnemonic'}
+      end
+      js1 = {name: 'Rajini', mnemonic: 'SuperStart'}.to_json
+      jsons = [js1, nil]
+      expect(@mock).to receive(:mget).once.with(*%w(heros/1 heros/2)).and_return(jsons)
+
+      expect(HashWithMultipleAttributesWithNil.new.metrics).to eq(
+                                                                   [{:hero_id => 1, :hero_name => 'Rajini', :hero_mnemonic => 'SuperStart'},
+                                                                    {:hero_id => 2, :hero_name => nil, :hero_mnemonic => nil}]
+                                                               )
+    end
+
     it 'should work for class methods' do
       class SelfHelp
         include Looksist

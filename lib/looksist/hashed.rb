@@ -156,7 +156,7 @@ module Looksist
         if populate.is_a? Array
           populate.collect do |_key|
             alias_method = find_alias(as, _key)
-            parsed_key = JSON.parse(values[elt.with_indifferent_access[using]]).deep_symbolize_keys
+            parsed_key = JSON.parse(values[elt.with_indifferent_access[using]] || '{}').deep_symbolize_keys
             elt[alias_method] = parsed_key[_key]
           end
         else
