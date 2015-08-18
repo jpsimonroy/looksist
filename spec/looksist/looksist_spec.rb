@@ -52,6 +52,24 @@ describe Looksist do
         expect(e.nome).to eq('Rajini')
         expect(e.age).to eq(16)
         expect(e.to_json).to eq("{\"id\":1,\"nome\":\"Rajini\",\"age\":16}")
+        end
+
+      it 'should fetch attributes appropriately when plucking single attribute from a json key' do
+        module NonAliasSpecificLookup
+          class NoCacheEmployee
+            include Her::Model
+            use_api TEST_API
+            include Looksist
+            lookup :name, using: :id, as: {name: 'nome'}
+            def as_json(opts)
+              super(opts).merge(attributes)
+            end
+          end
+        end
+        expect(@mock).to receive(:get).twice.times.with('ids/1').and_return({name: 'Rajini', age: 16}.to_json)
+        e = NonAliasSpecificLookup::NoCacheEmployee.new(id:1)
+        expect(e.nome).to eq('Rajini')
+        expect(e.to_json).to eq("{\"id\":1,\"nome\":\"Rajini\"}")
       end
     end
 

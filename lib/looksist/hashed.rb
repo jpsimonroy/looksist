@@ -161,7 +161,12 @@ module Looksist
           end
         else
           alias_method = find_alias(as, populate)
-          elt[alias_method] = values[elt.with_indifferent_access[using]]
+          begin
+            json = JSON.parse(values[elt.with_indifferent_access[using]])
+            elt[alias_method] = json.with_indifferent_access[populate]
+          rescue
+            elt[alias_method] = values[elt.with_indifferent_access[using]]
+          end
         end
       end
 

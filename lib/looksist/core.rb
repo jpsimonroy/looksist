@@ -19,7 +19,12 @@ module Looksist
           alias_what = find_alias(as, what)
           @lookup_attributes[alias_what] = opts[:using]
           define_method(alias_what) do
-            Looksist.redis_service.send("#{__entity__(bucket_name)}_for", self.send(using).try(:to_s))
+            result = Looksist.redis_service.send("#{__entity__(bucket_name)}_for", self.send(using).try(:to_s))
+            begin
+              JSON.parse(result)[what.to_s]
+            rescue
+              result
+            end
           end
         end
       end

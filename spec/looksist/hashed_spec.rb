@@ -507,6 +507,33 @@ describe Looksist::Hashed do
                                                                )
     end
 
+    it 'should work for multiple attributes but looking up only one attribute' do
+      class HashWithMultipleAttributesLookUpOne
+        include Looksist
+
+        def metrics
+          [
+              {
+                  hero_id: 1
+              },
+              {
+                  hero_id: 2
+              }
+          ]
+        end
+
+        inject after: :metrics, using: :hero_id, populate: :name, as: {name: 'hero_name'}
+      end
+      js1 = {name: 'Rajini', mnemonic: 'SuperStart'}.to_json
+      jsons = [js1, nil]
+      expect(@mock).to receive(:mget).once.with(*%w(heros/1 heros/2)).and_return(jsons)
+
+      expect(HashWithMultipleAttributesLookUpOne.new.metrics).to eq(
+                                                                     [{:hero_id => 1, :hero_name => 'Rajini'},
+                                                                      {:hero_id => 2, :hero_name => nil}]
+                                                                 )
+    end
+
     it 'should work for class methods' do
       class SelfHelp
         include Looksist
